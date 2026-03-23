@@ -4,8 +4,10 @@ import conceptsNavigationConfig from './concepts.navigation.config'
 import authNavigationConfig from './auth.navigation.config'
 import othersNavigationConfig from './others.navigation.config'
 import guideNavigationConfig from './guide.navigation.config'
+import ecmcNavigationConfig from './ecmc.navigation.config'
 
 const navigationConfig = [
+    ...ecmcNavigationConfig,
     ...dashboardsNavigationConfig,
     ...conceptsNavigationConfig,
     ...uiComponentNavigationConfig,

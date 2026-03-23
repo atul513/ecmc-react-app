@@ -1,2 +1,6 @@
 export const ADMIN = 'admin'
 export const USER = 'user'
+export const SUPERADMIN = 'superadmin'
+export const TEACHER = 'teacher'
+export const STUDENT = 'student'
+export const PARENT = 'parent'
