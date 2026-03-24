@@ -4,12 +4,10 @@ import AuthorityGuard from './AuthorityGuard'
 import AppRoute from './AppRoute'
 import FallbackRoute from './FallbackRoute'
 import PageContainer from '@/components/template/PageContainer'
-import { protectedRoutes, publicRoutes } from '@/configs/routes.config'
+import { protectedRoutes, publicRoutes, openRoutes } from '@/configs/routes.config'
 import { useAuth } from '@/auth'
 import { Routes, Route, Navigate } from 'react-router'
-import { lazy } from 'react'
 
-const Landing = lazy(() => import('@/views/landing/Landing'))
 
 const AllRoutes = (props) => {
     const { user } = useAuth()
@@ -19,8 +17,22 @@ const AllRoutes = (props) => {
             {/* Root — redirect based on auth state */}
             <Route index element={<FallbackRoute />} />
 
-            {/* Landing page — accessible to all, no auth guard */}
-            <Route path="/landing" element={<Landing />} />
+            {/* Open routes — accessible to everyone, no auth redirect */}
+            {openRoutes.map((route) => (
+                <Route
+                    key={route.key}
+                    path={route.path}
+                    element={
+                        <AppRoute
+                            routeKey={route.key}
+                            component={route.component}
+                            {...route.meta}
+                        />
+                    }
+                />
+            ))}
+
+           
 
             {/* Public routes (auth pages — redirect to dashboard if already signed in) */}
             <Route element={<PublicRoute />}>

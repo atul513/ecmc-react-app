@@ -8,12 +8,12 @@ import ecmcNavigationConfig from './ecmc.navigation.config'
 
 const navigationConfig = [
     ...ecmcNavigationConfig,
-    ...dashboardsNavigationConfig,
-    ...conceptsNavigationConfig,
+    //...dashboardsNavigationConfig,
+   // ...conceptsNavigationConfig,
     ...uiComponentNavigationConfig,
-    ...authNavigationConfig,
+   // ...authNavigationConfig,
     ...othersNavigationConfig,
-    ...guideNavigationConfig,
+    //...guideNavigationConfig,
 ]
 
 export default navigationConfig

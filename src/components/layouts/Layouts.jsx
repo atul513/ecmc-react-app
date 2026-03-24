@@ -1,18 +1,14 @@
 import { Suspense } from 'react'
-import { useLocation } from 'react-router'
 import Loading from '@/components/shared/Loading'
 import { useAuth } from '@/auth'
 import { useThemeStore } from '@/store/themeStore'
 import PostLoginLayout from './PostLoginLayout'
 import PreLoginLayout from './PreLoginLayout'
-import LandingLayout from './LandingLayout'
 
 const Layout = ({ children }) => {
     const layoutType = useThemeStore((state) => state.layout.type)
-    const { authenticated } = useAuth()
-    const { pathname } = useLocation()
 
-    const isLanding = pathname === '/landing'
+    const { authenticated } = useAuth()
 
     return (
         <Suspense
@@ -22,9 +18,7 @@ const Layout = ({ children }) => {
                 </div>
             }
         >
-            {isLanding ? (
-                <LandingLayout>{children}</LandingLayout>
-            ) : authenticated ? (
+            {authenticated ? (
                 <PostLoginLayout layoutType={layoutType}>
                     {children}
                 </PostLoginLayout>

@@ -5,7 +5,7 @@ import {
 } from '@/constants/navigation.constant'
 import { ADMIN, USER } from '@/constants/roles.constant'
 
-const dashboardsNavigationConfig = [
+const   dashboardsNavigationConfig = [
     {
         key: 'dashboard',
         path: '',

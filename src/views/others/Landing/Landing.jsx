@@ -1,4 +1,5 @@
 import HeroContent from './components/HeroContent'
+import { useAuth } from '@/auth'
 import NavigationBar from './components/NavigationBar'
 import Features from './components/Features'
 import Demos from './components/Demos'
@@ -12,6 +13,7 @@ import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 
 const Landing = () => {
     const [isDark, setMode] = useDarkMode()
+     const { authenticated } = useAuth()
 
     const mode = isDark ? MODE_DARK : MODE_LIGHT
 
@@ -23,7 +25,7 @@ const Landing = () => {
     }
 
     return (
-        <main className="px-4 lg:px-0 text-base">
+        <main className="w-full px-4 lg:px-0 text-base">
             <NavigationBar toggleMode={toggleMode} mode={mode} />
             <div className="relative">
                 <div

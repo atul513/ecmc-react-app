@@ -3,7 +3,7 @@ const appConfig = {
     authenticatedEntryPath: '/dashboards/ecommerce',
     unAuthenticatedEntryPath: '/landing',
     locale: 'en',
-    accessTokenPersistStrategy: 'localStorage',
+    accessTokenPersistStrategy: 'cookies',
     enableMock: false,
     activeNavTranslation: true,
 }

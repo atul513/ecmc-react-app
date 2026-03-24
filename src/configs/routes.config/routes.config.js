@@ -1,3 +1,4 @@
+import { lazy } from 'react'
 import dashboardsRoute from './dashboardsRoute'
 import conceptsRoute from './conceptsRoute'
 import uiComponentsRoute from './uiComponentsRoute'
@@ -8,6 +9,72 @@ import othersRoute from './othersRoute'
 import ecmcRoute from './ecmcRoute'
 
 export const publicRoutes = [...authRoute]
+
+const legalMeta = {
+    layout: 'blank',
+    footer: false,
+    pageContainerType: 'gutterless',
+    pageBackgroundType: 'plain',
+}
+
+export const openRoutes = [
+    {
+        key: 'landing',
+        path: `/landing`,
+        component: lazy(() => import('@/views/others/Landing')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'terms',
+        path: `/terms`,
+        component: lazy(() => import('@/views/others/Legal/TermsConditions')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'privacy',
+        path: `/privacy`,
+        component: lazy(() => import('@/views/others/Legal/PrivacyPolicy')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'cookie-policy',
+        path: `/cookie-policy`,
+        component: lazy(() => import('@/views/others/Legal/CookiePolicy')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'refund-policy',
+        path: `/refund-policy`,
+        component: lazy(() => import('@/views/others/Legal/RefundPolicy')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'contact',
+        path: `/contact`,
+        component: lazy(() => import('@/views/others/Legal/ContactUs')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'faq',
+        path: `/faq`,
+        component: lazy(() => import('@/views/others/Legal/FAQ')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'about',
+        path: `/about`,
+        component: lazy(() => import('@/views/others/Legal/AboutUs')),
+        authority: [],
+        meta: legalMeta,
+    },
+]
 
 export const protectedRoutes = [
     ...ecmcRoute,

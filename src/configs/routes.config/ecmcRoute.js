@@ -9,6 +9,50 @@ import {
 } from '@/constants/roles.constant'
 
 const ecmcRoute = [
+    // ─── BLOG MODULE (Admin + SuperAdmin) ─────────────────────────
+    {
+        key: 'ecmc.blog.list',
+        path: `${ECMC_PREFIX_PATH}/blog`,
+        component: lazy(() => import('@/views/ecmc/blog/BlogList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.blog.create',
+        path: `${ECMC_PREFIX_PATH}/blog/create`,
+        component: lazy(() => import('@/views/ecmc/blog/BlogCreate')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.blog.edit',
+        path: `${ECMC_PREFIX_PATH}/blog/edit/:id`,
+        component: lazy(() => import('@/views/ecmc/blog/BlogEdit')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.blog.categories',
+        path: `${ECMC_PREFIX_PATH}/blog-categories`,
+        component: lazy(() => import('@/views/ecmc/blog-categories/CategoryList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.blog.tags',
+        path: `${ECMC_PREFIX_PATH}/blog-tags`,
+        component: lazy(() => import('@/views/ecmc/blog-tags/TagList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.blog.comments',
+        path: `${ECMC_PREFIX_PATH}/blog-comments`,
+        component: lazy(() => import('@/views/ecmc/blog-comments/CommentList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+
     // ─── SUPERADMIN ROUTES ────────────────────────────────────────
     {
         key: 'ecmc.superadmin.dashboard',

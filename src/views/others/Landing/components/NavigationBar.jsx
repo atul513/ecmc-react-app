@@ -5,6 +5,10 @@ import classNames from '@/utils/classNames'
 import useScrollTop from '@/utils/hooks/useScrollTop'
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 import { TbMenu2 } from 'react-icons/tb'
+import { Button } from '@/components/ui'
+import { HiUser } from 'react-icons/hi'
+import { useNavigate } from 'react-router'
+
 
 const navMenu = [
     {
@@ -30,6 +34,7 @@ const navMenu = [
 ]
 
 const Navigation = ({ toggleMode, mode }) => {
+    const navigate = useNavigate()
     const { isSticky } = useScrollTop()
 
     const [isOpen, setIsOpen] = useState(false)
@@ -140,14 +145,18 @@ const Navigation = ({ toggleMode, mode }) => {
                         </svg>
                         <span className="sr-only">Toggle theme</span>
                     </button>
-                    <div className="border border-gray-200 dark:border-gray-700 rounded-full inline-flex items-center justify-center gap-2 py-1 px-2 bg-white dark:bg-gray-800">
-                        <img
-                            src="/img/landing/tech/vite.png"
-                            alt="vite"
-                            className="w-6 h-6"
+                   
+                        <Button
+                            shape="circle"
+                            size="sm"
+                            variant="solid"     
+                            icon={<HiUser />}
+                            onClick={() => navigate('/sign-in')}
                         />
-                        <span className="heading-text">Vite</span>
-                    </div>
+
+                  
+                    
+                    
                 </div>
             </div>
         </div>

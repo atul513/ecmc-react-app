@@ -12,18 +12,6 @@ const othersRoute = [
             pageContainerType: 'contained',
         },
     },
-    {
-        key: 'landing',
-        path: `/landing`,
-        component: lazy(() => import('@/views/others/Landing')),
-        authority: [ADMIN, USER],
-        meta: {
-            layout: 'blank',
-            footer: false,
-            pageContainerType: 'gutterless',
-            pageBackgroundType: 'plain',
-        },
-    },
 ]
 
 export default othersRoute
