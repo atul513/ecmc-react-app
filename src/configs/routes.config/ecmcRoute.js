@@ -9,6 +9,64 @@ import {
 } from '@/constants/roles.constant'
 
 const ecmcRoute = [
+    // ─── QUESTION BANK MODULE (Admin + SuperAdmin) ────────────────
+    {
+        key: 'ecmc.qbank.stats',
+        path: `${ECMC_PREFIX_PATH}/qbank/stats`,
+        component: lazy(() => import('@/views/ecmc/qbank/stats/QBankStats')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.qbank.subjects',
+        path: `${ECMC_PREFIX_PATH}/qbank/subjects`,
+        component: lazy(() => import('@/views/ecmc/qbank/subjects/SubjectList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.qbank.topics',
+        path: `${ECMC_PREFIX_PATH}/qbank/topics`,
+        component: lazy(() => import('@/views/ecmc/qbank/topics/TopicList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.qbank.tags',
+        path: `${ECMC_PREFIX_PATH}/qbank/tags`,
+        component: lazy(() => import('@/views/ecmc/qbank/tags/TagList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.qbank.questions',
+        path: `${ECMC_PREFIX_PATH}/qbank/questions`,
+        component: lazy(() => import('@/views/ecmc/qbank/questions/QuestionList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.qbank.questions.create',
+        path: `${ECMC_PREFIX_PATH}/qbank/questions/create`,
+        component: lazy(() => import('@/views/ecmc/qbank/questions/QuestionCreate')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.qbank.questions.edit',
+        path: `${ECMC_PREFIX_PATH}/qbank/questions/edit/:id`,
+        component: lazy(() => import('@/views/ecmc/qbank/questions/QuestionEdit')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.qbank.import',
+        path: `${ECMC_PREFIX_PATH}/qbank/import`,
+        component: lazy(() => import('@/views/ecmc/qbank/import/QuestionImport')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+
     // ─── BLOG MODULE (Admin + SuperAdmin) ─────────────────────────
     {
         key: 'ecmc.blog.list',
