@@ -67,6 +67,51 @@ const ecmcRoute = [
         meta: { pageContainerType: 'contained' },
     },
 
+    // ─── QUIZ MODULE (Admin + SuperAdmin) ────────────────────────
+    {
+        key: 'ecmc.quiz.categories',
+        path: `${ECMC_PREFIX_PATH}/quiz/categories`,
+        component: lazy(() => import('@/views/ecmc/quiz/categories/QuizCategoryList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.quiz.list',
+        path: `${ECMC_PREFIX_PATH}/quiz`,
+        component: lazy(() => import('@/views/ecmc/quiz/QuizList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.quiz.create',
+        path: `${ECMC_PREFIX_PATH}/quiz/create`,
+        component: lazy(() => import('@/views/ecmc/quiz/QuizCreate')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.quiz.edit',
+        path: `${ECMC_PREFIX_PATH}/quiz/edit/:id`,
+        component: lazy(() => import('@/views/ecmc/quiz/QuizEdit')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    // ─── STUDENT QUIZ ROUTES ──────────────────────────────────────
+    {
+        key: 'ecmc.student.myquizzes',
+        path: `${ECMC_PREFIX_PATH}/student/my-quizzes`,
+        component: lazy(() => import('@/views/ecmc/student/MyQuizzes')),
+        authority: [STUDENT],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.student.myattempts',
+        path: `${ECMC_PREFIX_PATH}/student/my-attempts`,
+        component: lazy(() => import('@/views/ecmc/student/MyAttempts')),
+        authority: [STUDENT],
+        meta: { pageContainerType: 'contained' },
+    },
+
     // ─── BLOG MODULE (Admin + SuperAdmin) ─────────────────────────
     {
         key: 'ecmc.blog.list',
