@@ -85,8 +85,8 @@ export async function apiBulkUpdateQuestionStatus(question_ids, status) {
 }
 
 // ─── Import ───────────────────────────────────────────────────────────────────
-export async function apiDownloadImportTemplate() {
-    return ApiService.fetchDataWithAxios({ url: `${BASE}/questions/import/template`, method: 'get', responseType: 'blob' })
+export async function apiDownloadImportTemplate(params) {
+    return ApiService.fetchDataWithAxios({ url: `${BASE}/questions/import/template`, method: 'get', responseType: 'blob', params })
 }
 export async function apiImportQuestions(formData) {
     return ApiService.fetchDataWithAxios({

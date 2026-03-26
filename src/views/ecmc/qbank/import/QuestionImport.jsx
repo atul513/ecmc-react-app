@@ -17,10 +17,12 @@ import {
     apiGetImportErrors,
     apiGetImportBatches,
     apiRollbackImportBatch,
+    apiGetSubjects,
+    apiGetTopics,
 } from '@/services/QBankService'
 import {
     TbDownload, TbUpload, TbRefresh, TbTrash, TbCircleCheck,
-    TbAlertCircle, TbClock, TbFileSpreadsheet,
+    TbAlertCircle, TbFileSpreadsheet, TbX,
 } from 'react-icons/tb'
 
 const BATCH_STATUS_COLORS = {
@@ -40,6 +42,153 @@ const BATCH_STATUS_OPTIONS = [
     { value: 'partial', label: 'Partial' },
 ]
 
+// ─── Template Download Dialog ──────────────────────────────────────────────────
+
+const TemplateDialog = ({ onClose }) => {
+    const [subjects, setSubjects] = useState([])
+    const [topics, setTopics] = useState([])
+    const [selectedSubject, setSelectedSubject] = useState(null)
+    const [selectedTopic, setSelectedTopic] = useState(null)
+    const [subjectsLoading, setSubjectsLoading] = useState(true)
+    const [topicsLoading, setTopicsLoading] = useState(false)
+    const [downloading, setDownloading] = useState(false)
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await apiGetSubjects({ per_page: 200 })
+                const list = res?.data?.data || res?.data || []
+                setSubjects(list.map((s) => ({ value: s.id, label: s.name })))
+            } catch {
+                // silent
+            } finally {
+                setSubjectsLoading(false)
+            }
+        }
+        load()
+    }, [])
+
+    const handleSubjectChange = async (opt) => {
+        setSelectedSubject(opt)
+        setSelectedTopic(null)
+        setTopics([])
+        if (!opt) return
+        setTopicsLoading(true)
+        try {
+            const res = await apiGetTopics(opt.value, { per_page: 200 })
+            const list = res?.data?.data || res?.data || []
+            setTopics(list.map((t) => ({ value: t.id, label: t.name })))
+        } catch {
+            // silent
+        } finally {
+            setTopicsLoading(false)
+        }
+    }
+
+    const handleDownload = async () => {
+        setDownloading(true)
+        try {
+            const params = {}
+            if (selectedSubject) params.subject_id = selectedSubject.value
+            if (selectedTopic) params.topic_id = selectedTopic.value
+            const blob = await apiDownloadImportTemplate(params)
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = 'questions_import_template.xlsx'
+            a.click()
+            URL.revokeObjectURL(url)
+            onClose()
+        } catch {
+            toast.push(<Notification type="danger" title="Failed to download template" />, { placement: 'top-center' })
+        } finally {
+            setDownloading(false)
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
+                    <div>
+                        <h3 className="font-semibold text-base">Download Import Template</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Optionally pre-fill subject &amp; topic in the template</p>
+                    </div>
+                    <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <TbX className="text-xl" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5 space-y-4">
+                    {/* Subject */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Subject <span className="text-gray-400 font-normal">(optional)</span>
+                        </label>
+                        {subjectsLoading ? (
+                            <div className="flex items-center gap-2 text-sm text-gray-400"><Spinner size="16px" /> Loading subjects…</div>
+                        ) : (
+                            <Select
+                                placeholder="Select subject…"
+                                options={subjects}
+                                value={selectedSubject}
+                                onChange={handleSubjectChange}
+                                isClearable
+                            />
+                        )}
+                    </div>
+
+                    {/* Topic */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Topic <span className="text-gray-400 font-normal">(optional)</span>
+                        </label>
+                        {topicsLoading ? (
+                            <div className="flex items-center gap-2 text-sm text-gray-400"><Spinner size="16px" /> Loading topics…</div>
+                        ) : (
+                            <Select
+                                placeholder={selectedSubject ? 'Select topic…' : 'Select a subject first'}
+                                options={topics}
+                                value={selectedTopic}
+                                onChange={setSelectedTopic}
+                                isDisabled={!selectedSubject || topics.length === 0}
+                                isClearable
+                            />
+                        )}
+                    </div>
+
+                    {/* Info about demo rows */}
+                    <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-3 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                        <p className="font-semibold">The template includes one demo row for each question type:</p>
+                        <ul className="list-disc list-inside space-y-0.5 text-blue-600 dark:text-blue-400">
+                            <li>MCQ (Single Correct)</li>
+                            <li>Multi-Select (Multiple Correct)</li>
+                            <li>True / False</li>
+                            <li>Short Answer</li>
+                            <li>Long Answer</li>
+                            <li>Fill in the Blank</li>
+                            <li>Match the Column</li>
+                        </ul>
+                        <p className="pt-1">Delete the demo rows before importing your actual questions.</p>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex gap-3 px-6 pb-5">
+                    <Button className="flex-1" onClick={onClose}>Cancel</Button>
+                    <Button variant="solid" icon={<TbDownload />} className="flex-1" loading={downloading} onClick={handleDownload}>
+                        Download Template
+                    </Button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+
 const QuestionImport = () => {
     const fileInputRef = useRef(null)
     const [file, setFile] = useState(null)
@@ -52,6 +201,7 @@ const QuestionImport = () => {
     const [batchLoading, setBatchLoading] = useState(true)
     const [errors, setErrors] = useState([])
     const [errorsOpen, setErrorsOpen] = useState(false)
+    const [showTemplateDialog, setShowTemplateDialog] = useState(false)
 
     const loadBatches = async () => {
         setBatchLoading(true)
@@ -67,20 +217,6 @@ const QuestionImport = () => {
     }
 
     useEffect(() => { loadBatches() }, [batchFilter])
-
-    const downloadTemplate = async () => {
-        try {
-            const blob = await apiDownloadImportTemplate()
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = 'questions_import_template.xlsx'
-            a.click()
-            URL.revokeObjectURL(url)
-        } catch {
-            toast.push(<Notification type="danger" title="Failed to download template" />, { placement: 'top-center' })
-        }
-    }
 
     const handleFileChange = (e) => {
         const f = e.target.files?.[0]
@@ -162,7 +298,7 @@ const QuestionImport = () => {
                         <h3 className="text-xl font-semibold">Import Questions</h3>
                         <p className="text-sm text-gray-500 mt-1">Bulk import questions from Excel (.xlsx)</p>
                     </div>
-                    <Button icon={<TbDownload />} onClick={downloadTemplate}>
+                    <Button icon={<TbDownload />} onClick={() => setShowTemplateDialog(true)}>
                         Download Template
                     </Button>
                 </div>
@@ -369,6 +505,11 @@ const QuestionImport = () => {
                     </AdaptiveCard>
                 )}
             </div>
+
+            {/* Template Download Dialog */}
+            {showTemplateDialog && (
+                <TemplateDialog onClose={() => setShowTemplateDialog(false)} />
+            )}
         </Container>
     )
 }
