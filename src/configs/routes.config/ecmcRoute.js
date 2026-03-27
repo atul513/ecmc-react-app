@@ -96,6 +96,22 @@ const ecmcRoute = [
         authority: [ADMIN, SUPERADMIN],
         meta: { pageContainerType: 'contained' },
     },
+    // ─── STUDENT PRACTICE SET ROUTES ─────────────────────────────
+    {
+        key: 'ecmc.student.mypracticesets',
+        path: `${ECMC_PREFIX_PATH}/student/my-practice-sets`,
+        component: lazy(() => import('@/views/ecmc/student/MyPracticeSets')),
+        authority: [STUDENT],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.student.practiceattempt',
+        path: `${ECMC_PREFIX_PATH}/student/practice/:id`,
+        component: lazy(() => import('@/views/ecmc/student/PracticeAttempt')),
+        authority: [STUDENT],
+        meta: { pageContainerType: 'gutterless' },
+    },
+
     // ─── STUDENT QUIZ ROUTES ──────────────────────────────────────
     {
         key: 'ecmc.student.myquizzes',
@@ -116,6 +132,29 @@ const ecmcRoute = [
         path: `${ECMC_PREFIX_PATH}/student/attempt/:attemptId`,
         component: lazy(() => import('@/views/ecmc/student/QuizAttempt')),
         authority: [STUDENT],
+        meta: { pageContainerType: 'contained' },
+    },
+
+    // ─── PRACTICE SET MODULE (Admin + SuperAdmin) ────────────────
+    {
+        key: 'ecmc.practice.list',
+        path: `${ECMC_PREFIX_PATH}/practice`,
+        component: lazy(() => import('@/views/ecmc/practice/PracticeSetList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.practice.create',
+        path: `${ECMC_PREFIX_PATH}/practice/create`,
+        component: lazy(() => import('@/views/ecmc/practice/PracticeSetCreate')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.practice.edit',
+        path: `${ECMC_PREFIX_PATH}/practice/edit/:id`,
+        component: lazy(() => import('@/views/ecmc/practice/PracticeSetEdit')),
+        authority: [ADMIN, SUPERADMIN],
         meta: { pageContainerType: 'contained' },
     },
 

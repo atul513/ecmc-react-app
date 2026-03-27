@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import Spinner from '@/components/ui/Spinner'
 import Notification from '@/components/ui/Notification'
@@ -12,13 +11,21 @@ import {
     apiGetAttemptResult,
 } from '@/services/QuizService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
-import { TbChevronLeft, TbChevronRight, TbClock, TbSend, TbCheck } from 'react-icons/tb'
+import {
+    TbChevronLeft,
+    TbChevronRight,
+    TbClock,
+    TbSend,
+    TbCheck,
+    TbLayoutGrid,
+    TbX,
+} from 'react-icons/tb'
 import 'katex/dist/katex.min.css'
 
-// ─── Question Input ────────────────────────────────────────────────────────────
-// `wrapper`  = the quiz_question row  { id, question: { type, options, ... } }
-// `answer`   = answers[wrapper.id]    { selected_option_ids, text_answer, ... }
+// ─── Option label A B C D ──────────────────────────────────────────────────────
+const LABELS = ['A', 'B', 'C', 'D', 'E', 'F']
 
+// ─── Question Input ────────────────────────────────────────────────────────────
 const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankChange, onMatchChange }) => {
     const question = wrapper.question
     const qType = question.type
@@ -26,47 +33,60 @@ const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankC
 
     if (['mcq', 'true_false'].includes(qType)) {
         return (
-            <div className="space-y-2">
-                {question.options?.map((opt) => (
-                    <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => onOptionSelect(wrapper, opt.id)}
-                        className={`w-full text-left px-4 py-3 rounded-xl border transition-colors
-                            ${selected.includes(opt.id)
-                                ? 'bg-primary/10 border-primary text-primary dark:bg-primary/20'
-                                : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-primary/40'
-                            }`}
-                    >
-                        {opt.option_text}
-                    </button>
-                ))}
+            <div className="space-y-3">
+                {question.options?.map((opt, i) => {
+                    const isSelected = selected.includes(opt.id)
+                    return (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => onOptionSelect(wrapper, opt.id)}
+                            className={`w-full text-left px-4 py-3.5 rounded-xl border-2 transition-all flex items-center gap-3
+                                ${isSelected
+                                    ? 'bg-primary/10 border-primary text-primary dark:bg-primary/20 shadow-sm'
+                                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-primary/50 hover:bg-primary/5'
+                                }`}
+                        >
+                            <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
+                                ${isSelected ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-600 text-gray-500'}`}>
+                                {LABELS[i] || i + 1}
+                            </span>
+                            <span className="text-sm leading-snug">{opt.option_text}</span>
+                        </button>
+                    )
+                })}
             </div>
         )
     }
 
     if (qType === 'multi_select') {
         return (
-            <div className="space-y-2">
-                <p className="text-xs text-gray-400 mb-2">Select all that apply</p>
-                {question.options?.map((opt) => (
-                    <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => onOptionSelect(wrapper, opt.id)}
-                        className={`w-full text-left px-4 py-3 rounded-xl border transition-colors flex items-start gap-3
-                            ${selected.includes(opt.id)
-                                ? 'bg-primary/10 border-primary dark:bg-primary/20'
-                                : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-primary/40'
-                            }`}
-                    >
-                        <span className={`mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center
-                            ${selected.includes(opt.id) ? 'bg-primary border-primary' : 'border-gray-300 dark:border-gray-500'}`}>
-                            {selected.includes(opt.id) && <TbCheck className="text-white text-xs" />}
-                        </span>
-                        {opt.option_text}
-                    </button>
-                ))}
+            <div className="space-y-3">
+                <p className="text-xs text-primary font-medium bg-primary/5 px-3 py-1.5 rounded-lg inline-block">
+                    Select all that apply
+                </p>
+                {question.options?.map((opt, i) => {
+                    const isSelected = selected.includes(opt.id)
+                    return (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => onOptionSelect(wrapper, opt.id)}
+                            className={`w-full text-left px-4 py-3.5 rounded-xl border-2 transition-all flex items-center gap-3
+                                ${isSelected
+                                    ? 'bg-primary/10 border-primary dark:bg-primary/20 shadow-sm'
+                                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-primary/50 hover:bg-primary/5'
+                                }`}
+                        >
+                            <span className={`w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors
+                                ${isSelected ? 'bg-primary border-primary' : 'border-gray-300 dark:border-gray-500'}`}>
+                                {isSelected && <TbCheck className="text-white text-xs" />}
+                            </span>
+                            <span className="text-xs text-gray-400 font-medium w-5 shrink-0">{LABELS[i]}</span>
+                            <span className="text-sm leading-snug">{opt.option_text}</span>
+                        </button>
+                    )
+                })}
             </div>
         )
     }
@@ -74,8 +94,8 @@ const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankC
     if (['short_answer', 'long_answer'].includes(qType)) {
         return (
             <textarea
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                rows={qType === 'long_answer' ? 6 : 3}
+                className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-4 text-sm focus:outline-none focus:border-primary transition-colors resize-none"
+                rows={qType === 'long_answer' ? 7 : 4}
                 placeholder="Type your answer here..."
                 value={answer?.text_answer || ''}
                 onChange={(e) => onTextChange(wrapper.id, e.target.value)}
@@ -86,13 +106,16 @@ const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankC
     if (qType === 'fill_blank') {
         return (
             <div className="space-y-3">
+                <p className="text-xs text-gray-400 mb-1">Fill in each blank</p>
                 {question.blanks?.map((blank) => (
                     <div key={blank.blank_number} className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500 shrink-0">Blank {blank.blank_number}:</span>
+                        <span className="text-sm font-medium text-gray-500 shrink-0 w-16">
+                            Blank {blank.blank_number}
+                        </span>
                         <input
                             type="text"
-                            className="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                            placeholder="Your answer..."
+                            className="flex-1 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
+                            placeholder={`Answer ${blank.blank_number}`}
                             value={answer?.fill_blank_answers?.find((b) => b.blank_number === blank.blank_number)?.answer || ''}
                             onChange={(e) => onBlankChange(wrapper.id, blank.blank_number, e.target.value)}
                         />
@@ -106,16 +129,17 @@ const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankC
         const columnBOptions = question.match_pairs?.map((p) => ({ id: p.id, text: p.column_b_text })) || []
         return (
             <div className="space-y-3">
+                <p className="text-xs text-gray-400 mb-1">Match each item on the left with the correct option</p>
                 {question.match_pairs?.map((pair) => {
                     const matchAnswer = answer?.match_pairs_answer?.find((m) => m.pair_id === pair.id)
                     return (
-                        <div key={pair.id} className="flex items-center gap-3">
-                            <div className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm">
+                        <div key={pair.id} className="flex items-center gap-2">
+                            <div className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-medium">
                                 {pair.column_a_text}
                             </div>
-                            <span className="text-gray-400 shrink-0">→</span>
+                            <span className="text-gray-400 shrink-0 font-bold">→</span>
                             <select
-                                className="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="flex-1 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors"
                                 value={matchAnswer?.matched_with || ''}
                                 onChange={(e) => onMatchChange(wrapper.id, pair.id, e.target.value)}
                             >
@@ -134,22 +158,64 @@ const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankC
     return <div className="text-gray-400 text-sm italic">Unsupported question type: {qType}</div>
 }
 
-// ─── Main Component ────────────────────────────────────────────────────────────
+// ─── Question Palette ──────────────────────────────────────────────────────────
+const QuestionPalette = ({ wrappers, currentIdx, isAnswered, onSelect, onSubmit, submitting }) => (
+    <div className="flex flex-col h-full">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Question Navigator</p>
+        <div className="grid grid-cols-5 gap-1.5 mb-4">
+            {wrappers.map((w, i) => (
+                <button
+                    key={w.id}
+                    type="button"
+                    onClick={() => onSelect(i)}
+                    className={`h-9 rounded-lg text-xs font-bold transition-all
+                        ${i === currentIdx
+                            ? 'bg-primary text-white shadow-md scale-105'
+                            : isAnswered(w)
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-300 dark:border-green-700'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                >
+                    {i + 1}
+                </button>
+            ))}
+        </div>
+        <div className="space-y-1.5 text-xs text-gray-400 mb-4">
+            <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded bg-primary inline-block" />Current
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/40 border border-green-300 inline-block" />Answered
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded bg-gray-100 dark:bg-gray-700 inline-block" />Not answered
+            </div>
+        </div>
+        <div className="mt-auto">
+            <Button variant="solid" className="w-full" loading={submitting} onClick={onSubmit}
+                icon={<TbSend />}>
+                Submit Quiz
+            </Button>
+        </div>
+    </div>
+)
 
+// ─── Main Component ────────────────────────────────────────────────────────────
 const QuizAttempt = () => {
     const { attemptId } = useParams()
     const navigate = useNavigate()
 
-    const [attemptData, setAttemptData] = useState(null)   // full data.data
-    const [wrappers, setWrappers] = useState([])            // data.questions array
+    const [attemptData, setAttemptData] = useState(null)
+    const [wrappers, setWrappers] = useState([])
     const [currentIdx, setCurrentIdx] = useState(0)
-    const [answers, setAnswers] = useState({})              // keyed by wrapper.id (number)
+    const [answers, setAnswers] = useState({})
     const [timeLeft, setTimeLeft] = useState(null)
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
     const [submitted, setSubmitted] = useState(false)
     const [result, setResult] = useState(null)
     const [showConfirm, setShowConfirm] = useState(false)
+    const [showPalette, setShowPalette] = useState(false)
     const textSaveTimers = useRef({})
     const submittedRef = useRef(false)
 
@@ -157,19 +223,14 @@ const QuizAttempt = () => {
         const load = async () => {
             try {
                 const res = await apiGetAttempt(attemptId)
-                const data = res?.data   // the `data` envelope
-
+                const data = res?.data
                 setAttemptData(data)
                 setWrappers(data?.questions || [])
-
-                // Restore saved answers — keyed by wrapper id (number keys in saved_answers)
                 const init = {}
                 Object.entries(data?.saved_answers || {}).forEach(([key, val]) => {
                     init[Number(key)] = val
                 })
                 setAnswers(init)
-
-                // Timer: use remaining_seconds from API directly
                 if (data?.remaining_seconds != null) {
                     setTimeLeft(Math.max(0, data.remaining_seconds))
                 }
@@ -183,14 +244,10 @@ const QuizAttempt = () => {
         load()
     }, [attemptId, navigate])
 
-    // Countdown timer
     useEffect(() => {
         if (timeLeft === null) return
         if (timeLeft <= 0) {
-            if (!submittedRef.current) {
-                submittedRef.current = true
-                doSubmit()
-            }
+            if (!submittedRef.current) { submittedRef.current = true; doSubmit() }
             return
         }
         const t = setTimeout(() => setTimeLeft((s) => s - 1), 1000)
@@ -201,14 +258,13 @@ const QuizAttempt = () => {
     const doSubmit = useCallback(async () => {
         setSubmitting(true)
         setShowConfirm(false)
+        setShowPalette(false)
         try {
             await apiSubmitAttempt(attemptId)
             try {
                 const res = await apiGetAttemptResult(attemptId)
                 setResult(res?.data)
-            } catch {
-                // result may not be immediate
-            }
+            } catch { /* result may not be immediate */ }
             setSubmitted(true)
         } catch {
             toast.push(<Notification type="danger" title="Failed to submit quiz" />, { placement: 'top-center' })
@@ -227,12 +283,9 @@ const QuizAttempt = () => {
     const saveAnswer = useCallback(async (wrapperId, payload) => {
         try {
             await apiSaveAnswer(attemptId, { quiz_question_id: wrapperId, ...payload })
-        } catch {
-            // silently fail — data preserved in local state
-        }
+        } catch { /* silent */ }
     }, [attemptId])
 
-    // MCQ / true_false / multi_select
     const handleOptionSelect = (wrapper, optionId) => {
         const qType = wrapper.question?.type
         const isMulti = qType === 'multi_select'
@@ -245,29 +298,22 @@ const QuizAttempt = () => {
         saveAnswer(wrapper.id, payload)
     }
 
-    // Short / long answer (debounced)
     const handleTextChange = (wrapperId, text) => {
         setAnswers((prev) => ({ ...prev, [wrapperId]: { ...prev[wrapperId], text_answer: text } }))
         clearTimeout(textSaveTimers.current[wrapperId])
-        textSaveTimers.current[wrapperId] = setTimeout(() => {
-            saveAnswer(wrapperId, { text_answer: text })
-        }, 800)
+        textSaveTimers.current[wrapperId] = setTimeout(() => saveAnswer(wrapperId, { text_answer: text }), 800)
     }
 
-    // Fill in the blank (debounced)
     const handleBlankChange = (wrapperId, blankNumber, text) => {
         setAnswers((prev) => {
             const current = prev[wrapperId]?.fill_blank_answers || []
             const updated = [...current.filter((b) => b.blank_number !== blankNumber), { blank_number: blankNumber, answer: text }]
             clearTimeout(textSaveTimers.current[`${wrapperId}_${blankNumber}`])
-            textSaveTimers.current[`${wrapperId}_${blankNumber}`] = setTimeout(() => {
-                saveAnswer(wrapperId, { fill_blank_answers: updated })
-            }, 800)
+            textSaveTimers.current[`${wrapperId}_${blankNumber}`] = setTimeout(() => saveAnswer(wrapperId, { fill_blank_answers: updated }), 800)
             return { ...prev, [wrapperId]: { ...prev[wrapperId], fill_blank_answers: updated } }
         })
     }
 
-    // Match the column
     const handleMatchChange = (wrapperId, pairId, matchedWith) => {
         setAnswers((prev) => {
             const current = prev[wrapperId]?.match_pairs_answer || []
@@ -297,209 +343,319 @@ const QuizAttempt = () => {
     }
 
     if (loading) {
-        return <div className="flex justify-center items-center h-screen"><Spinner size="40px" /></div>
+        return (
+            <div className="flex flex-col justify-center items-center h-screen gap-3">
+                <Spinner size="40px" />
+                <p className="text-sm text-gray-400">Loading your quiz...</p>
+            </div>
+        )
     }
 
     // ── Result Screen ──────────────────────────────────────────────────────────
     if (submitted) {
+        const pct = result ? Number(result.percentage || 0).toFixed(1) : null
         return (
-            <Container>
-                <div className="max-w-lg mx-auto text-center py-16">
-                    <div className="text-6xl mb-4">{result?.passed ? '🎉' : '📋'}</div>
-                    <h2 className="text-2xl font-bold mb-1">Quiz Submitted!</h2>
-                    <p className="text-gray-400 text-sm mb-6">{attemptData?.quiz?.title}</p>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 py-12">
+                <div className="w-full max-w-md">
+                    <div className="text-center mb-6">
+                        <div className="text-7xl mb-4">{result?.passed ? '🎉' : '📋'}</div>
+                        <h2 className="text-2xl font-bold mb-1">
+                            {result?.passed ? 'Well Done!' : 'Quiz Submitted!'}
+                        </h2>
+                        <p className="text-gray-400 text-sm">{attemptData?.quiz?.title}</p>
+                    </div>
 
                     {result ? (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md text-left space-y-3">
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Score</span>
-                                <span className="font-semibold">{result.total_marks_obtained} / {result.total_marks}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Percentage</span>
-                                <span className="font-semibold">{Number(result.percentage || 0).toFixed(1)}%</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Result</span>
-                                <span className={`font-bold ${result.passed ? 'text-green-600' : 'text-red-500'}`}>
+                        <>
+                            {/* Score ring summary */}
+                            <div className={`rounded-2xl p-6 mb-4 text-center ${result.passed ? 'bg-green-50 dark:bg-green-900/20' : 'bg-orange-50 dark:bg-orange-900/20'}`}>
+                                <div className={`text-5xl font-extrabold mb-1 ${result.passed ? 'text-green-600' : 'text-orange-500'}`}>
+                                    {pct}%
+                                </div>
+                                <div className={`text-sm font-bold uppercase tracking-wide ${result.passed ? 'text-green-600' : 'text-orange-500'}`}>
                                     {result.passed ? 'PASSED' : 'FAILED'}
-                                </span>
+                                </div>
+                                <div className="text-gray-500 text-sm mt-1">
+                                    {result.total_marks_obtained} / {result.total_marks} marks
+                                </div>
                             </div>
-                            <hr className="dark:border-gray-600" />
-                            <div className="flex justify-between text-sm text-gray-500">
-                                <span>Correct</span><span className="text-green-600 font-medium">{result.correct_count}</span>
+
+                            {/* Stats grid */}
+                            <div className="grid grid-cols-3 gap-3 mb-4">
+                                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-sm">
+                                    <div className="text-2xl font-bold text-green-600">{result.correct_count}</div>
+                                    <div className="text-xs text-gray-400 mt-0.5">Correct</div>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-sm">
+                                    <div className="text-2xl font-bold text-red-500">{result.incorrect_count}</div>
+                                    <div className="text-xs text-gray-400 mt-0.5">Incorrect</div>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-sm">
+                                    <div className="text-2xl font-bold text-gray-400">{result.skipped_count}</div>
+                                    <div className="text-xs text-gray-400 mt-0.5">Skipped</div>
+                                </div>
                             </div>
-                            <div className="flex justify-between text-sm text-gray-500">
-                                <span>Incorrect</span><span className="text-red-500 font-medium">{result.incorrect_count}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-gray-500">
-                                <span>Skipped</span><span className="font-medium">{result.skipped_count}</span>
-                            </div>
+
                             {result.time_taken_seconds != null && (
-                                <div className="flex justify-between text-sm text-gray-500">
-                                    <span>Time taken</span>
-                                    <span className="font-medium">{formatTime(result.time_taken_seconds)}</span>
+                                <div className="bg-white dark:bg-gray-800 rounded-xl px-4 py-3 flex justify-between items-center shadow-sm mb-4">
+                                    <span className="text-sm text-gray-500 flex items-center gap-2">
+                                        <TbClock /> Time taken
+                                    </span>
+                                    <span className="font-semibold text-sm">{formatTime(result.time_taken_seconds)}</span>
                                 </div>
                             )}
-                        </div>
+                        </>
                     ) : (
-                        <p className="text-gray-500 text-sm">Your answers have been submitted. Results will be available shortly.</p>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm shadow-sm mb-4">
+                            Your answers have been submitted. Results will be available shortly.
+                        </div>
                     )}
 
-                    <Button variant="solid" className="mt-8" onClick={() => navigate(`${ECMC_PREFIX_PATH}/student/my-attempts`)}>
+                    <Button variant="solid" className="w-full" size="lg"
+                        onClick={() => navigate(`${ECMC_PREFIX_PATH}/student/my-attempts`)}>
                         View All Attempts
                     </Button>
                 </div>
-            </Container>
+            </div>
         )
     }
 
     // ── Attempt Screen ─────────────────────────────────────────────────────────
     const wrapper = wrappers[currentIdx]
     const answeredCount = wrappers.filter(isAnswered).length
+    const progressPct = wrappers.length ? Math.round((answeredCount / wrappers.length) * 100) : 0
+    const isLast = currentIdx === wrappers.length - 1
+    const isFirst = currentIdx === 0
 
     return (
-        <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Header */}
-            <div className="bg-white dark:bg-gray-800 shadow px-4 py-3 flex items-center justify-between gap-4 shrink-0">
-                <div className="font-semibold text-gray-800 dark:text-white truncate">
-                    {attemptData?.quiz?.title}
-                </div>
-                <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-sm text-gray-400 hidden sm:block">
-                        {answeredCount} / {wrappers.length} answered
-                    </span>
+        <div className="flex flex-col h-[100dvh] bg-gray-50 dark:bg-gray-900">
+
+            {/* ── Header ── */}
+            <div className="bg-white dark:bg-gray-800 shadow-sm shrink-0">
+                <div className="flex items-center justify-between px-4 py-3 gap-3">
+                    {/* Title */}
+                    <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm text-gray-800 dark:text-white truncate leading-tight">
+                            {attemptData?.quiz?.title}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5">
+                            Q{currentIdx + 1} of {wrappers.length}
+                            <span className="mx-1.5">·</span>
+                            {answeredCount} answered
+                        </div>
+                    </div>
+
+                    {/* Timer */}
                     {timeLeft !== null && (
-                        <span className={`flex items-center gap-1 font-mono font-semibold px-3 py-1 rounded-full text-sm
+                        <div className={`flex items-center gap-1 font-mono font-bold px-3 py-1.5 rounded-xl text-sm shrink-0
                             ${timeLeft < 300
                                 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                                 : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                             }`}>
                             <TbClock className="text-base" />
                             {formatTime(timeLeft)}
-                        </span>
+                        </div>
                     )}
+
+                    {/* Palette toggle (mobile) */}
+                    <button
+                        type="button"
+                        className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 shrink-0"
+                        onClick={() => setShowPalette(true)}
+                    >
+                        <TbLayoutGrid size={18} />
+                    </button>
+                </div>
+
+                {/* Progress bar */}
+                <div className="h-1 bg-gray-100 dark:bg-gray-700">
+                    <div
+                        className="h-full bg-primary transition-all duration-500"
+                        style={{ width: `${progressPct}%` }}
+                    />
                 </div>
             </div>
 
+            {/* ── Body ── */}
             <div className="flex flex-1 overflow-hidden">
-                {/* Main Question Area */}
-                <div className="flex-1 overflow-auto p-4 md:p-6">
-                    {wrapper && (
-                        <div className="max-w-3xl mx-auto">
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-4">
-                                {/* Question meta */}
-                                <div className="flex flex-wrap items-center gap-2 mb-4">
-                                    <span className="text-sm font-medium text-gray-400">
-                                        Q{currentIdx + 1} of {wrappers.length}
-                                    </span>
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 capitalize">
-                                        {wrapper.question?.type?.replace(/_/g, ' ')}
-                                    </span>
-                                    {(wrapper.marks_override ?? wrapper.question?.marks) != null && (
-                                        <span className="text-xs text-gray-400">
-                                            {wrapper.marks_override ?? wrapper.question.marks} marks
+
+                {/* Question area */}
+                <div className="flex-1 overflow-y-auto">
+                    <div className="max-w-2xl mx-auto px-4 py-5 pb-28 md:pb-6">
+                        {wrapper && (
+                            <>
+                                {/* Question card */}
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-5 mb-4">
+                                    {/* Meta row */}
+                                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                                        <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                                            Q{currentIdx + 1}
                                         </span>
-                                    )}
+                                        <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 capitalize font-medium">
+                                            {wrapper.question?.type?.replace(/_/g, ' ')}
+                                        </span>
+                                        {(wrapper.marks_override ?? wrapper.question?.marks) != null && (
+                                            <span className="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 font-medium">
+                                                {wrapper.marks_override ?? wrapper.question?.marks} marks
+                                            </span>
+                                        )}
+                                        {isAnswered(wrapper) && (
+                                            <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium flex items-center gap-1">
+                                                <TbCheck className="text-sm" /> Answered
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Question text */}
+                                    <div
+                                        className="prose prose-sm dark:prose-invert max-w-full mb-5 text-base leading-relaxed"
+                                        dangerouslySetInnerHTML={{ __html: wrapper.question?.question_text }}
+                                    />
+
+                                    {/* Answer input */}
+                                    <QuestionInput
+                                        wrapper={wrapper}
+                                        answer={answers[wrapper.id]}
+                                        onOptionSelect={handleOptionSelect}
+                                        onTextChange={handleTextChange}
+                                        onBlankChange={handleBlankChange}
+                                        onMatchChange={handleMatchChange}
+                                    />
                                 </div>
 
-                                {/* Question text */}
-                                <div
-                                    className="prose prose-sm dark:prose-invert max-w-full mb-6"
-                                    dangerouslySetInnerHTML={{ __html: wrapper.question?.question_text }}
-                                />
-
-                                {/* Answer input */}
-                                <QuestionInput
-                                    wrapper={wrapper}
-                                    answer={answers[wrapper.id]}
-                                    onOptionSelect={handleOptionSelect}
-                                    onTextChange={handleTextChange}
-                                    onBlankChange={handleBlankChange}
-                                    onMatchChange={handleMatchChange}
-                                />
-                            </div>
-
-                            {/* Navigation */}
-                            <div className="flex justify-between items-center">
-                                <Button
-                                    icon={<TbChevronLeft />}
-                                    disabled={currentIdx === 0}
-                                    onClick={() => setCurrentIdx((i) => i - 1)}
-                                >
-                                    Previous
-                                </Button>
-                                {currentIdx === wrappers.length - 1 ? (
-                                    <Button variant="solid" icon={<TbSend />} loading={submitting} onClick={handleSubmitClick}>
-                                        Submit Quiz
+                                {/* Desktop navigation */}
+                                <div className="hidden md:flex justify-between items-center">
+                                    <Button icon={<TbChevronLeft />} disabled={isFirst}
+                                        onClick={() => setCurrentIdx((i) => i - 1)}>
+                                        Previous
                                     </Button>
-                                ) : (
-                                    <Button variant="solid" icon={<TbChevronRight />} onClick={() => setCurrentIdx((i) => i + 1)}>
-                                        Next
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                                    {isLast ? (
+                                        <Button variant="solid" icon={<TbSend />} loading={submitting} onClick={handleSubmitClick}>
+                                            Submit Quiz
+                                        </Button>
+                                    ) : (
+                                        <Button variant="solid" icon={<TbChevronRight />}
+                                            onClick={() => setCurrentIdx((i) => i + 1)}>
+                                            Next
+                                        </Button>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
 
-                {/* Question Palette Sidebar */}
-                <div className="hidden md:flex flex-col w-56 shrink-0 bg-white dark:bg-gray-800 border-l dark:border-gray-700 p-4 overflow-auto">
-                    <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Questions</div>
-                    <div className="grid grid-cols-4 gap-1.5">
-                        {wrappers.map((w, i) => (
-                            <button
-                                key={w.id}
-                                type="button"
-                                onClick={() => setCurrentIdx(i)}
-                                className={`w-9 h-9 rounded text-xs font-medium transition-colors
-                                    ${i === currentIdx
-                                        ? 'bg-primary text-white'
-                                        : isAnswered(w)
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                    }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="mt-4 space-y-1.5 text-xs text-gray-400">
-                        <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-primary inline-block shrink-0" />Current
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/40 inline-block shrink-0" />Answered
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-gray-100 dark:bg-gray-700 inline-block shrink-0" />Not answered
-                        </div>
-                    </div>
-                    <div className="mt-auto pt-4">
-                        <Button variant="solid" size="sm" className="w-full" loading={submitting} onClick={handleSubmitClick}>
-                            Submit Quiz
-                        </Button>
-                    </div>
+                {/* Desktop sidebar palette */}
+                <div className="hidden md:flex flex-col w-60 shrink-0 bg-white dark:bg-gray-800 border-l dark:border-gray-700 p-4 overflow-y-auto">
+                    <QuestionPalette
+                        wrappers={wrappers}
+                        currentIdx={currentIdx}
+                        isAnswered={isAnswered}
+                        onSelect={(i) => setCurrentIdx(i)}
+                        onSubmit={handleSubmitClick}
+                        submitting={submitting}
+                    />
                 </div>
             </div>
 
-            {/* Confirm Submit Dialog */}
+            {/* ── Mobile bottom nav bar ── */}
+            <div className="md:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 px-4 py-3 flex items-center gap-3 z-30">
+                <button
+                    type="button"
+                    disabled={isFirst}
+                    onClick={() => setCurrentIdx((i) => i - 1)}
+                    className="flex items-center justify-center w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-700 disabled:opacity-40 shrink-0"
+                >
+                    <TbChevronLeft size={20} />
+                </button>
+
+                <div className="flex-1">
+                    {isLast ? (
+                        <Button variant="solid" className="w-full" icon={<TbSend />}
+                            loading={submitting} onClick={handleSubmitClick}>
+                            Submit Quiz
+                        </Button>
+                    ) : (
+                        <Button variant="solid" className="w-full" icon={<TbChevronRight />}
+                            onClick={() => setCurrentIdx((i) => i + 1)}>
+                            Next Question
+                        </Button>
+                    )}
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => setShowPalette(true)}
+                    className="flex flex-col items-center justify-center w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-700 shrink-0 text-gray-600 dark:text-gray-300"
+                >
+                    <TbLayoutGrid size={18} />
+                    <span className="text-[9px] mt-0.5">Questions</span>
+                </button>
+            </div>
+
+            {/* ── Mobile palette bottom sheet ── */}
+            {showPalette && (
+                <div className="fixed inset-0 z-50 flex flex-col justify-end md:hidden">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowPalette(false)} />
+                    <div className="relative bg-white dark:bg-gray-800 rounded-t-3xl px-5 pt-4 pb-8 shadow-2xl max-h-[80vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-sm">Question Navigator</h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowPalette(false)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
+                            >
+                                <TbX size={16} />
+                            </button>
+                        </div>
+                        {/* Stats summary */}
+                        <div className="flex gap-3 mb-4 text-xs">
+                            <div className="flex-1 bg-green-50 dark:bg-green-900/20 rounded-xl p-3 text-center">
+                                <div className="font-bold text-green-600 text-lg">{answeredCount}</div>
+                                <div className="text-green-600">Answered</div>
+                            </div>
+                            <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-xl p-3 text-center">
+                                <div className="font-bold text-gray-500 text-lg">{wrappers.length - answeredCount}</div>
+                                <div className="text-gray-400">Remaining</div>
+                            </div>
+                        </div>
+                        <QuestionPalette
+                            wrappers={wrappers}
+                            currentIdx={currentIdx}
+                            isAnswered={isAnswered}
+                            onSelect={(i) => { setCurrentIdx(i); setShowPalette(false) }}
+                            onSubmit={handleSubmitClick}
+                            submitting={submitting}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* ── Confirm Submit Dialog ── */}
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-xl">
-                        <h3 className="font-semibold text-lg mb-2">Submit Quiz?</h3>
-                        <p className="text-gray-500 text-sm mb-1">
-                            You have answered <strong>{answeredCount}</strong> of <strong>{wrappers.length}</strong> questions.
-                        </p>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                        <h3 className="font-bold text-lg mb-3">Submit Quiz?</h3>
+                        <div className="flex gap-3 mb-4">
+                            <div className="flex-1 bg-green-50 dark:bg-green-900/20 rounded-xl p-3 text-center">
+                                <div className="font-bold text-green-600 text-xl">{answeredCount}</div>
+                                <div className="text-xs text-green-600">Answered</div>
+                            </div>
+                            <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-center">
+                                <div className="font-bold text-orange-500 text-xl">{wrappers.length - answeredCount}</div>
+                                <div className="text-xs text-orange-500">Unanswered</div>
+                            </div>
+                        </div>
                         {wrappers.length - answeredCount > 0 && (
-                            <p className="text-orange-500 text-sm mt-1">
-                                {wrappers.length - answeredCount} question(s) left unanswered.
+                            <p className="text-sm text-orange-500 mb-4 bg-orange-50 dark:bg-orange-900/20 px-3 py-2 rounded-xl">
+                                ⚠️ You have {wrappers.length - answeredCount} unanswered question(s). Once submitted, you cannot make changes.
                             </p>
                         )}
-                        <div className="flex gap-3 mt-5">
-                            <Button className="flex-1" onClick={() => setShowConfirm(false)}>Cancel</Button>
-                            <Button variant="solid" className="flex-1" loading={submitting} onClick={() => { submittedRef.current = true; doSubmit() }}>
-                                Submit
+                        <div className="flex gap-3">
+                            <Button className="flex-1" onClick={() => setShowConfirm(false)}>Go Back</Button>
+                            <Button variant="solid" className="flex-1" loading={submitting}
+                                onClick={() => { submittedRef.current = true; doSubmit() }}>
+                                Submit Now
                             </Button>
                         </div>
                     </div>

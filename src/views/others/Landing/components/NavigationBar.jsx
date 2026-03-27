@@ -6,7 +6,6 @@ import useScrollTop from '@/utils/hooks/useScrollTop'
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 import { TbMenu2 } from 'react-icons/tb'
 import { Button } from '@/components/ui'
-import { HiUser } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 
 
@@ -145,18 +144,21 @@ const Navigation = ({ toggleMode, mode }) => {
                         </svg>
                         <span className="sr-only">Toggle theme</span>
                     </button>
-                   
-                        <Button
-                            shape="circle"
-                            size="sm"
-                            variant="solid"     
-                            icon={<HiUser />}
-                            onClick={() => navigate('/sign-in')}
-                        />
+                    <Button
+                        size="sm"
+                        variant="plain"
+                        onClick={() => navigate('/sign-in')}
+                    >
+                        Sign In
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="solid"
+                        onClick={() => navigate('/sign-up')}
+                    >
+                        Sign Up
+                    </Button>
 
-                  
-                    
-                    
                 </div>
             </div>
         </div>

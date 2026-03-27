@@ -25,6 +25,7 @@ const { THead, TBody, Tr, Th, Td } = Table
 const step1Schema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
+    instructions: z.string().optional(),
     category_id: z.any().nullable().optional(),
     type: z.string().default('quiz'),
     access_type: z.string().default('free'),
@@ -91,6 +92,20 @@ const StepDetails = ({ control, errors, categoryOptions, watchAccessType }) => (
                     content={field.value ?? ''}
                     onChange={(val) => field.onChange(typeof val === 'object' ? (val.html ?? '') : val)}
                     placeholder="Write a description for this quiz..."
+                />
+            )} />
+        </FormItem>
+
+        <FormItem
+            label="Instructions for Students"
+            className="md:col-span-2"
+            extra={<span className="text-xs text-gray-400">Shown to students before they start the quiz</span>}
+        >
+            <Controller name="instructions" control={control} render={({ field }) => (
+                <MathRichTextEditor
+                    content={field.value ?? ''}
+                    onChange={(val) => field.onChange(typeof val === 'object' ? (val.html ?? '') : val)}
+                    placeholder="e.g. Read each question carefully. Each correct answer carries 4 marks. There is negative marking of 1 mark for wrong answers..."
                 />
             )} />
         </FormItem>
