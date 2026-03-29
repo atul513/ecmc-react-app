@@ -58,12 +58,42 @@ function AuthProvider({ children }) {
         setSessionSignedIn(false)
     }
 
+    const ROLE_ENTRY_PATHS = {
+        superadmin: '/ecmc/superadmin/dashboard',
+        admin:      '/ecmc/admin/dashboard',
+        teacher:    '/ecmc/teacher/dashboard',
+        student:    '/ecmc/student/dashboard',
+        parent:     '/ecmc/parent/dashboard',
+    }
+
+    const normalizeUser = (user) => {
+        if (!user) return user
+        // Map role string → authority array if authority not already set
+        if (user.role && (!user.authority || user.authority.length === 0)) {
+            return { ...user, authority: [user.role] }
+        }
+        return user
+    }
+
+    const getRoleEntryPath = (user) => {
+        const role = user?.role ?? user?.authority?.[0]
+        return ROLE_ENTRY_PATHS[role] ?? appConfig.authenticatedEntryPath
+    }
+
+    const redirectForUser = (user) => {
+        const search = window.location.search
+        const params = new URLSearchParams(search)
+        const redirectUrl = params.get(REDIRECT_URL_KEY)
+        navigatorRef.current?.navigate(redirectUrl ? redirectUrl : getRoleEntryPath(user))
+    }
+
     const signIn = async (values) => {
         try {
             const resp = await apiSignIn(values)
             if (resp) {
-                handleSignIn({ accessToken: resp.token }, resp.user)
-                redirect()
+                const normalized = normalizeUser(resp.user)
+                handleSignIn({ accessToken: resp.token }, normalized)
+                redirectForUser(normalized)
                 return {
                     status: 'success',
                     message: '',
@@ -85,8 +115,9 @@ function AuthProvider({ children }) {
         try {
             const resp = await apiSignUp(values)
             if (resp) {
-                handleSignIn({ accessToken: resp.token }, resp.user)
-                redirect()
+                const normalized = normalizeUser(resp.user)
+                handleSignIn({ accessToken: resp.token }, normalized)
+                redirectForUser(normalized)
                 return {
                     status: 'success',
                     message: '',

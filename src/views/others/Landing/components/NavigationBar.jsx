@@ -98,8 +98,10 @@ const Navigation = ({ toggleMode, mode }) => {
                         />
                     )}
                 </a>
-                <div className="lg:flex flex-row flex-1 absolute inset-0 hidden items-center justify-center text-sm text-zinc-600 font-medium hover:text-zinc-800 transition duration-200 [perspective:1000px] overflow-auto sm:overflow-visible no-visible-scrollbar">
-                    <NavList tabs={navMenu} />
+                <div className="lg:flex flex-row flex-1 absolute inset-0 hidden items-center justify-center text-sm text-zinc-600 font-medium hover:text-zinc-800 transition duration-200 [perspective:1000px] overflow-auto sm:overflow-visible no-visible-scrollbar pointer-events-none">
+                    <div className="pointer-events-auto">
+                        <NavList tabs={navMenu} />
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <button

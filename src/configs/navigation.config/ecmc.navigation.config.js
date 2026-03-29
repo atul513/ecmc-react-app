@@ -8,6 +8,8 @@ import {
     SUPERADMIN,
     ADMIN,
     STUDENT,
+    TEACHER,
+    PARENT,
 } from '@/constants/roles.constant'
 
 const ecmcNavigationConfig = [
@@ -239,6 +241,125 @@ const ecmcNavigationConfig = [
         ],
     },
 
+    // ─── SUPERADMIN ───────────────────────────────────────────────
+    {
+        key: 'ecmc.superadmin',
+        path: '',
+        title: 'Super Admin',
+        translateKey: 'nav.ecmc.superadmin',
+        icon: 'shield',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [SUPERADMIN],
+        subMenu: [
+            {
+                key: 'ecmc.superadmin.dashboard',
+                path: `${ECMC_PREFIX_PATH}/superadmin/dashboard`,
+                title: 'Dashboard',
+                translateKey: 'nav.ecmc.superadmin.dashboard',
+                icon: 'dashboard',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [SUPERADMIN],
+                subMenu: [],
+            },
+            {
+                key: 'ecmc.superadmin.users',
+                path: `${ECMC_PREFIX_PATH}/superadmin/users`,
+                title: 'Users',
+                translateKey: 'nav.ecmc.superadmin.users',
+                icon: 'users',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [SUPERADMIN],
+                subMenu: [],
+            },
+            {
+                key: 'ecmc.superadmin.schools',
+                path: `${ECMC_PREFIX_PATH}/superadmin/schools`,
+                title: 'Schools',
+                translateKey: 'nav.ecmc.superadmin.schools',
+                icon: 'building',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [SUPERADMIN],
+                subMenu: [],
+            },
+        ],
+    },
+
+    // ─── TEACHER ──────────────────────────────────────────────────
+    {
+        key: 'ecmc.teacher',
+        path: '',
+        title: 'Teacher Portal',
+        translateKey: 'nav.ecmc.teacher',
+        icon: 'bookOpen',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [TEACHER],
+        subMenu: [
+            {
+                key: 'ecmc.teacher.dashboard',
+                path: `${ECMC_PREFIX_PATH}/teacher/dashboard`,
+                title: 'Dashboard',
+                translateKey: 'nav.ecmc.teacher.dashboard',
+                icon: 'dashboard',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [TEACHER],
+                subMenu: [],
+            },
+            {
+                key: 'ecmc.teacher.classes',
+                path: `${ECMC_PREFIX_PATH}/teacher/classes`,
+                title: 'My Classes',
+                translateKey: 'nav.ecmc.teacher.classes',
+                icon: 'folder',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [TEACHER],
+                subMenu: [],
+            },
+            {
+                key: 'ecmc.teacher.assignments',
+                path: `${ECMC_PREFIX_PATH}/teacher/assignments`,
+                title: 'Assignments',
+                translateKey: 'nav.ecmc.teacher.assignments',
+                icon: 'clipboardCheck',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [TEACHER],
+                subMenu: [],
+            },
+        ],
+    },
+
+    // ─── PARENT ───────────────────────────────────────────────────
+    {
+        key: 'ecmc.parent',
+        path: '',
+        title: 'Parent Portal',
+        translateKey: 'nav.ecmc.parent',
+        icon: 'users',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [PARENT],
+        subMenu: [
+            {
+                key: 'ecmc.parent.dashboard',
+                path: `${ECMC_PREFIX_PATH}/parent/dashboard`,
+                title: 'Dashboard',
+                translateKey: 'nav.ecmc.parent.dashboard',
+                icon: 'dashboard',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [PARENT],
+                subMenu: [],
+            },
+            {
+                key: 'ecmc.parent.children',
+                path: `${ECMC_PREFIX_PATH}/parent/children`,
+                title: 'My Children',
+                translateKey: 'nav.ecmc.parent.children',
+                icon: 'users',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [PARENT],
+                subMenu: [],
+            },
+        ],
+    },
+
     // ─── STUDENT ──────────────────────────────────────────────────
     {
         key: 'ecmc.student',
@@ -249,6 +370,16 @@ const ecmcNavigationConfig = [
         type: NAV_ITEM_TYPE_TITLE,
         authority: [STUDENT],
         subMenu: [
+            {
+                key: 'ecmc.student.dashboard',
+                path: `${ECMC_PREFIX_PATH}/student/dashboard`,
+                title: 'Dashboard',
+                translateKey: 'nav.ecmc.student.dashboard',
+                icon: 'dashboard',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [STUDENT],
+                subMenu: [],
+            },
             {
                 key: 'ecmc.student.mypracticesets',
                 path: `${ECMC_PREFIX_PATH}/student/my-practice-sets`,
