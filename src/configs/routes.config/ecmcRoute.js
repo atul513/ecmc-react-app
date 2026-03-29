@@ -158,6 +158,30 @@ const ecmcRoute = [
         meta: { pageContainerType: 'contained' },
     },
 
+    // ─── PLANS & SUBSCRIPTIONS MODULE (Admin + SuperAdmin) ────────
+    {
+        key: 'ecmc.plans.list',
+        path: `${ECMC_PREFIX_PATH}/plans`,
+        component: lazy(() => import('@/views/ecmc/plans/PlanList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'ecmc.plans.subscriptions',
+        path: `${ECMC_PREFIX_PATH}/subscriptions`,
+        component: lazy(() => import('@/views/ecmc/plans/AdminSubscriptions')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    // ─── STUDENT SUBSCRIPTION ROUTE ───────────────────────────────
+    {
+        key: 'ecmc.student.mysubscription',
+        path: `${ECMC_PREFIX_PATH}/student/my-subscription`,
+        component: lazy(() => import('@/views/ecmc/student/MySubscription')),
+        authority: [STUDENT],
+        meta: { pageContainerType: 'contained' },
+    },
+
     // ─── BLOG MODULE (Admin + SuperAdmin) ─────────────────────────
     {
         key: 'ecmc.blog.list',

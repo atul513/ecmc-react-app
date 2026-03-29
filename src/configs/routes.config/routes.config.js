@@ -74,6 +74,13 @@ export const openRoutes = [
         authority: [],
         meta: legalMeta,
     },
+    {
+        key: 'pricing',
+        path: `/pricing`,
+        component: lazy(() => import('@/views/others/Pricing/PublicPricing')),
+        authority: [],
+        meta: legalMeta,
+    },
 ]
 
 export const protectedRoutes = [
