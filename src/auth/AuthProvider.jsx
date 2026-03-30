@@ -1,4 +1,4 @@
-import { useRef, useImperativeHandle, useState } from 'react'
+import { useRef, useImperativeHandle, useState, useEffect } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
@@ -58,6 +58,17 @@ function AuthProvider({ children }) {
         setSessionSignedIn(false)
     }
 
+    // Fix authority for sessions already persisted in localStorage (e.g. before role mapping was added)
+    useEffect(() => {
+        if (user?.role) {
+            const role = typeof user.role === 'string' ? user.role.toLowerCase() : String(user.role)
+            const current = user.authority
+            if (!current || current.length === 0 || current[0] !== role) {
+                setUser({ ...user, authority: [role] })
+            }
+        }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
     const ROLE_ENTRY_PATHS = {
         superadmin: '/ecmc/superadmin/dashboard',
         admin:      '/ecmc/admin/dashboard',
@@ -68,9 +79,10 @@ function AuthProvider({ children }) {
 
     const normalizeUser = (user) => {
         if (!user) return user
-        // Map role string → authority array if authority not already set
-        if (user.role && (!user.authority || user.authority.length === 0)) {
-            return { ...user, authority: [user.role] }
+        // Always derive authority from role field (lowercase), overriding whatever the API returned
+        if (user.role) {
+            const role = typeof user.role === 'string' ? user.role.toLowerCase() : String(user.role)
+            return { ...user, authority: [role] }
         }
         return user
     }
@@ -90,8 +102,10 @@ function AuthProvider({ children }) {
     const signIn = async (values) => {
         try {
             const resp = await apiSignIn(values)
+            console.log('[AUTH DEBUG] signIn raw response:', JSON.stringify(resp))
             if (resp) {
                 const normalized = normalizeUser(resp.user)
+                console.log('[AUTH DEBUG] normalized user:', JSON.stringify(normalized))
                 handleSignIn({ accessToken: resp.token }, normalized)
                 redirectForUser(normalized)
                 return {
