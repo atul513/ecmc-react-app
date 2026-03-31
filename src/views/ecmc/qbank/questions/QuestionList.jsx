@@ -25,7 +25,7 @@ import {
     apiBulkUpdateQuestionStatus,
 } from '@/services/QBankService'
 import {
-    TbPlus, TbSearch, TbPencil, TbTrash, TbCopy, TbSend, TbCircleCheck,
+    TbPlus, TbSearch, TbPencil, TbTrash, TbCopy, TbSend, TbCircleCheck, TbFileImport,
     TbCircleX, TbFilter, TbX,
 } from 'react-icons/tb'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
@@ -183,6 +183,9 @@ const QuestionList = () => {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <h3 className="text-lg font-semibold">Questions <span className="text-sm font-normal text-gray-400">({total})</span></h3>
                         <div className="flex gap-2">
+                            <Button variant="default" icon={<TbFileImport />} onClick={() => navigate(`${ECMC_PREFIX_PATH}/qbank/import`)}>
+                                Import
+                            </Button>
                             <Button variant="solid" icon={<TbPlus />} onClick={() => navigate(`${ECMC_PREFIX_PATH}/qbank/questions/create`)}>
                                 Add Question
                             </Button>

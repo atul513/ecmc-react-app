@@ -219,6 +219,35 @@ const QuizAttempt = () => {
     const textSaveTimers = useRef({})
     const submittedRef = useRef(false)
 
+    // Block text selection, copy, cut on the exam screen
+    useEffect(() => {
+        const blockKeys = (e) => {
+            if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'a'].includes(e.key.toLowerCase())) {
+                // Allow inside textareas / inputs (students need to type)
+                const tag = e.target?.tagName
+                if (tag === 'TEXTAREA' || tag === 'INPUT') return
+                e.preventDefault()
+            }
+        }
+        const blockCopy = (e) => {
+            const tag = e.target?.tagName
+            if (tag === 'TEXTAREA' || tag === 'INPUT') return
+            e.preventDefault()
+        }
+        const blockContext = (e) => e.preventDefault()
+
+        document.addEventListener('keydown', blockKeys)
+        document.addEventListener('copy', blockCopy)
+        document.addEventListener('cut', blockCopy)
+        document.addEventListener('contextmenu', blockContext)
+        return () => {
+            document.removeEventListener('keydown', blockKeys)
+            document.removeEventListener('copy', blockCopy)
+            document.removeEventListener('cut', blockCopy)
+            document.removeEventListener('contextmenu', blockContext)
+        }
+    }, [])
+
     useEffect(() => {
         const load = async () => {
             try {
@@ -428,7 +457,7 @@ const QuizAttempt = () => {
     const isFirst = currentIdx === 0
 
     return (
-        <div className="flex flex-col h-[100dvh] bg-gray-50 dark:bg-gray-900">
+        <div className="flex flex-col h-[100dvh] bg-gray-50 dark:bg-gray-900" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
 
             {/* ── Header ── */}
             <div className="bg-white dark:bg-gray-800 shadow-sm shrink-0">

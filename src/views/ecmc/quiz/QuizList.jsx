@@ -13,6 +13,7 @@ import Dialog from '@/components/ui/Dialog'
 import Pagination from '@/components/ui/Pagination'
 import { apiGetQuizzes, apiDeleteQuiz, apiPublishQuiz, apiArchiveQuiz, apiGetQuizCategories } from '@/services/QuizService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
+import Tooltip from '@/components/ui/Tooltip'
 import {
     TbPlus, TbPencil, TbTrash, TbSearch, TbPlayerPlay, TbArchive,
 } from 'react-icons/tb'
@@ -270,38 +271,46 @@ const QuizList = () => {
                                             <Td>{statusBadge(q.status)}</Td>
                                             <Td>
                                                 <div className="flex gap-1">
-                                                    <Button
-                                                        size="xs"
-                                                        icon={<TbPencil />}
-                                                        onClick={() => navigate(`${ECMC_PREFIX_PATH}/quiz/edit/${q.id}`)}
-                                                    />
-                                                    {q.status === 'draft' && (
+                                                    <Tooltip title="Edit Quiz">
                                                         <Button
                                                             size="xs"
-                                                            variant="plain"
-                                                            className="text-emerald-600"
-                                                            icon={<TbPlayerPlay />}
-                                                            loading={actionLoading === q.id + '_publish'}
-                                                            onClick={() => handlePublish(q)}
+                                                            icon={<TbPencil />}
+                                                            onClick={() => navigate(`${ECMC_PREFIX_PATH}/quiz/edit/${q.id}`)}
                                                         />
+                                                    </Tooltip>
+                                                    {['draft', 'archived'].includes(q.status) && (
+                                                        <Tooltip title="Publish Quiz">
+                                                            <Button
+                                                                size="xs"
+                                                                variant="plain"
+                                                                className="text-emerald-600"
+                                                                icon={<TbPlayerPlay />}
+                                                                loading={actionLoading === q.id + '_publish'}
+                                                                onClick={() => handlePublish(q)}
+                                                            />
+                                                        </Tooltip>
                                                     )}
                                                     {q.status === 'published' && (
+                                                        <Tooltip title="Archive Quiz">
+                                                            <Button
+                                                                size="xs"
+                                                                variant="plain"
+                                                                className="text-gray-500"
+                                                                icon={<TbArchive />}
+                                                                loading={actionLoading === q.id + '_archive'}
+                                                                onClick={() => handleArchive(q)}
+                                                            />
+                                                        </Tooltip>
+                                                    )}
+                                                    <Tooltip title="Delete Quiz">
                                                         <Button
                                                             size="xs"
                                                             variant="plain"
-                                                            className="text-gray-500"
-                                                            icon={<TbArchive />}
-                                                            loading={actionLoading === q.id + '_archive'}
-                                                            onClick={() => handleArchive(q)}
+                                                            className="text-red-500"
+                                                            icon={<TbTrash />}
+                                                            onClick={() => setDeleteDialog({ open: true, item: q })}
                                                         />
-                                                    )}
-                                                    <Button
-                                                        size="xs"
-                                                        variant="plain"
-                                                        className="text-red-500"
-                                                        icon={<TbTrash />}
-                                                        onClick={() => setDeleteDialog({ open: true, item: q })}
-                                                    />
+                                                    </Tooltip>
                                                 </div>
                                             </Td>
                                         </Tr>
