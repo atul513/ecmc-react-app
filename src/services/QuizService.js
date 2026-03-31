@@ -71,6 +71,28 @@ export async function apiGetAttempt(attemptId) {
     return ApiService.fetchDataWithAxios({ url: `${BASE}/attempts/${attemptId}`, method: 'get' })
 }
 
+// ─── Attempt Report ───────────────────────────────────────────────────────────
+export async function apiGetAttemptReport(attemptId) {
+    return ApiService.fetchDataWithAxios({ url: `${BASE}/attempts/${attemptId}/report`, method: 'get' })
+}
+export async function apiDownloadAttemptReportPdf(attemptId) {
+    // Returns raw blob via AxiosBase directly (not through ApiService which strips to .data)
+    const { default: AxiosBase } = await import('./axios/AxiosBase')
+    const response = await AxiosBase({
+        url: `/v1/attempts/${attemptId}/report/pdf`,
+        method: 'get',
+        responseType: 'blob',
+    })
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `attempt-${attemptId}-report.pdf`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+}
+
 // ─── Student Dashboard ────────────────────────────────────────────────────────
 export async function apiGetMyAttempts(params) {
     return ApiService.fetchDataWithAxios({ url: `${BASE}/my/attempts`, method: 'get', params })

@@ -9,7 +9,9 @@ import toast from '@/components/ui/toast'
 import Button from '@/components/ui/Button'
 import { apiGetMyAttempts, apiGetAttemptResult } from '@/services/QuizService'
 import Dialog from '@/components/ui/Dialog'
-import { TbSearch, TbEye, TbTrophy, TbClock, TbCheck, TbX } from 'react-icons/tb'
+import { useNavigate } from 'react-router'
+import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
+import { TbSearch, TbEye, TbClock, TbCheck, TbX, TbFileReport } from 'react-icons/tb'
 
 const { THead, TBody, Tr, Th, Td } = Table
 
@@ -83,6 +85,7 @@ const ResultDialog = ({ open, result, onClose }) => {
 }
 
 const MyAttempts = () => {
+    const navigate = useNavigate()
     const [attempts, setAttempts] = useState([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
@@ -197,13 +200,23 @@ const MyAttempts = () => {
                                         <Td className="text-xs text-gray-500">{formatDate(a.started_at)}</Td>
                                         <Td>
                                             {a.status === 'completed' && (
-                                                <Button
-                                                    size="xs"
-                                                    icon={<TbEye />}
-                                                    onClick={() => viewResult(a)}
-                                                >
-                                                    View
-                                                </Button>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        size="xs"
+                                                        icon={<TbEye />}
+                                                        onClick={() => viewResult(a)}
+                                                    >
+                                                        Quick View
+                                                    </Button>
+                                                    <Button
+                                                        size="xs"
+                                                        variant="solid"
+                                                        icon={<TbFileReport />}
+                                                        onClick={() => navigate(`${ECMC_PREFIX_PATH}/attempt/${a.id}/report`)}
+                                                    >
+                                                        Full Report
+                                                    </Button>
+                                                </div>
                                             )}
                                         </Td>
                                     </Tr>

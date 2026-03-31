@@ -134,6 +134,13 @@ const ecmcRoute = [
         authority: [STUDENT],
         meta: { pageContainerType: 'contained' },
     },
+    {
+        key: 'ecmc.attempt.report',
+        path: `${ECMC_PREFIX_PATH}/attempt/:attemptId/report`,
+        component: lazy(() => import('@/views/ecmc/student/QuizReport')),
+        authority: [STUDENT, TEACHER, ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
 
     // ─── PRACTICE SET MODULE (Admin + SuperAdmin) ────────────────
     {

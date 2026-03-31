@@ -440,10 +440,18 @@ const QuizAttempt = () => {
                         </div>
                     )}
 
-                    <Button variant="solid" className="w-full" size="lg"
-                        onClick={() => navigate(`${ECMC_PREFIX_PATH}/student/my-attempts`)}>
-                        View All Attempts
-                    </Button>
+                    <div className="space-y-3">
+                        {result && (
+                            <Button variant="solid" className="w-full" size="lg"
+                                onClick={() => navigate(`${ECMC_PREFIX_PATH}/attempt/${attemptId}/report`)}>
+                                View Full Report
+                            </Button>
+                        )}
+                        <Button variant="plain" className="w-full" size="lg"
+                            onClick={() => navigate(`${ECMC_PREFIX_PATH}/student/my-attempts`)}>
+                            View All Attempts
+                        </Button>
+                    </div>
                 </div>
             </div>
         )
