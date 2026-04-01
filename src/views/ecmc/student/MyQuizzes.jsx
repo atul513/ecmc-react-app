@@ -11,6 +11,30 @@ import { apiGetMyQuizzes, apiCheckQuizAccess, apiStartQuiz } from '@/services/Qu
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
 import { TbSearch, TbPlayerPlay, TbLock, TbClock } from 'react-icons/tb'
 
+const stripHtml = (html) => (html || '').replace(/<[^>]+>/g, '').trim()
+const DESC_LIMIT = 80
+
+const DescriptionText = ({ html }) => {
+    const [expanded, setExpanded] = useState(false)
+    const plain = stripHtml(html)
+    if (!plain) return null
+    const isLong = plain.length > DESC_LIMIT
+    return (
+        <div className="text-xs text-gray-400 mt-1">
+            {isLong && !expanded ? plain.slice(0, DESC_LIMIT) + '…' : plain}
+            {isLong && (
+                <button
+                    type="button"
+                    className="ml-1 text-primary underline text-xs"
+                    onClick={() => setExpanded((v) => !v)}
+                >
+                    {expanded ? 'less' : 'more'}
+                </button>
+            )}
+        </div>
+    )
+}
+
 const MyQuizzes = () => {
     const navigate = useNavigate()
     const [quizzes, setQuizzes] = useState([])
@@ -93,7 +117,7 @@ const MyQuizzes = () => {
                                     <div className="flex-1">
                                         <div className="font-semibold">{quiz.title}</div>
                                         {quiz.description && (
-                                            <div className="text-xs text-gray-400 mt-1 line-clamp-2">{quiz.description}</div>
+                                            <DescriptionText html={quiz.description} />
                                         )}
                                     </div>
                                     <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${quiz.type === 'exam' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>

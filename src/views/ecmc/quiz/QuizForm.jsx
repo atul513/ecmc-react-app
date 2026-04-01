@@ -7,7 +7,6 @@ import Switcher from '@/components/ui/Switcher'
 import Spinner from '@/components/ui/Spinner'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import Table from '@/components/ui/Table'
 import { Form, FormItem } from '@/components/ui/Form'
 import DatePicker from '@/components/ui/DatePicker'
 import { useForm, Controller } from 'react-hook-form'
@@ -16,9 +15,13 @@ import { z } from 'zod'
 import { apiGetQuizCategories } from '@/services/QuizService'
 import { apiGetQuestions, apiGetSubjects, apiGetTopics } from '@/services/QBankService'
 import MathRichTextEditor from '@/components/shared/MathRichTextEditor'
-import { TbPlus, TbTrash, TbSearch } from 'react-icons/tb'
+import {
+    TbPlus, TbTrash, TbSearch, TbArrowUp, TbArrowDown,
+    TbChevronDown, TbChevronUp, TbFilter,
+    TbChecks, TbSection, TbAlertCircle,
+} from 'react-icons/tb'
 
-const { THead, TBody, Tr, Th, Td } = Table
+
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
@@ -213,7 +216,22 @@ const StepSettings = ({ control, watchDurationMode, watchNegative, watchMarksMod
 
 const emptySection = (idx) => ({ _key: `new_${Date.now()}_${idx}`, id: null, title: '', instructions: '', sort_order: idx })
 
-const StepQuestions = ({ selectedQuestions, onAddQuestion, onRemoveQuestion, onChangeMarks, onChangeSectionKey, sections, onSectionsChange }) => {
+const DIFF_COLORS = {
+    easy:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+    medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    hard:   'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+}
+const TYPE_COLORS = {
+    mcq:          'bg-blue-100 text-blue-700',
+    multi_select: 'bg-violet-100 text-violet-700',
+    true_false:   'bg-teal-100 text-teal-700',
+    short_answer: 'bg-cyan-100 text-cyan-700',
+    long_answer:  'bg-indigo-100 text-indigo-700',
+    fill_blank:   'bg-orange-100 text-orange-700',
+    match_column: 'bg-pink-100 text-pink-700',
+}
+
+const StepQuestions = ({ selectedQuestions, onAddQuestion, onRemoveQuestion, onChangeMarks, onChangeSectionKey, sections, onSectionsChange, onReorder }) => {
     const [filters, setFilters] = useState({ search: '', type: '', difficulty: '', subject_id: '', topic_id: '' })
     const [qResults, setQResults] = useState([])
     const [qLoading, setQLoading] = useState(false)
@@ -221,6 +239,8 @@ const StepQuestions = ({ selectedQuestions, onAddQuestion, onRemoveQuestion, onC
     const [subjects, setSubjects] = useState([])
     const [topics, setTopics] = useState([])
     const [sectionsOpen, setSectionsOpen] = useState(sections.length > 0)
+    const [searchOpen, setSearchOpen] = useState(true)
+    const [filtersOpen, setFiltersOpen] = useState(false)
 
     useEffect(() => {
         apiGetSubjects({ active_only: true }).then((res) => setSubjects(res?.data || [])).catch(() => {})
@@ -286,56 +306,110 @@ const StepQuestions = ({ selectedQuestions, onAddQuestion, onRemoveQuestion, onC
 
     const handleKeyDown = (e) => { if (e.key === 'Enter') { e.preventDefault(); searchQuestions() } }
 
+    const moveQuestion = (idx, dir) => {
+        const target = idx + dir
+        if (target < 0 || target >= selectedQuestions.length) return
+        const next = [...selectedQuestions]
+        const temp = next[idx]
+        next[idx] = next[target]
+        next[target] = temp
+        next.forEach((q, i) => { q.sort_order = i + 1 })
+        if (onReorder) onReorder(next)
+    }
+
+    // Section-based question counts
+    const sectionCounts = useMemo(() => {
+        const counts = {}
+        selectedQuestions.forEach((q) => {
+            const key = q._sectionKey || '__none__'
+            counts[key] = (counts[key] || 0) + 1
+        })
+        return counts
+    }, [selectedQuestions])
+
+    const stripHtml = (html) => (html || '').replace(/<[^>]+>/g, '').trim()
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-5">
+            {/* ── Summary stats bar ── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl px-4 py-3 text-center">
+                    <div className="text-xl font-bold text-blue-600">{selectedQuestions.length}</div>
+                    <div className="text-xs text-gray-500">Questions</div>
+                </div>
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl px-4 py-3 text-center">
+                    <div className="text-xl font-bold text-emerald-600">{sections.length}</div>
+                    <div className="text-xs text-gray-500">Sections</div>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl px-4 py-3 text-center">
+                    <div className="text-xl font-bold text-amber-600">
+                        {selectedQuestions.reduce((sum, q) => sum + (q.marks_override || 0), 0) || '—'}
+                    </div>
+                    <div className="text-xs text-gray-500">Custom Marks</div>
+                </div>
+                <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl px-4 py-3 text-center">
+                    <div className="text-xl font-bold text-violet-600">
+                        {[...new Set(selectedQuestions.map((q) => q._difficulty).filter(Boolean))].length}
+                    </div>
+                    <div className="text-xs text-gray-500">Difficulty Levels</div>
+                </div>
+            </div>
+
             {/* ── Sections panel ── */}
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                <div
-                    className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 cursor-pointer select-none"
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition"
                     onClick={() => setSectionsOpen((v) => !v)}
                 >
                     <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">Sections</span>
+                        <TbSection className="text-primary text-lg" />
+                        <span className="font-semibold text-sm">Sections</span>
                         {sections.length > 0 && (
                             <span className="text-xs bg-primary text-white rounded-full px-2 py-0.5">{sections.length}</span>
                         )}
-                        <span className="text-xs text-gray-400">(optional — for exams with multiple subjects)</span>
+                        <span className="text-xs text-gray-400 hidden sm:inline">(optional — group questions by subject/topic)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button
-                            size="xs"
-                            variant="solid"
-                            icon={<TbPlus />}
+                        <span
+                            className="text-xs text-primary font-medium hover:underline cursor-pointer"
                             onClick={(e) => { e.stopPropagation(); addSection() }}
                         >
-                            Add Section
-                        </Button>
-                        <span className="text-gray-400 text-xs">{sectionsOpen ? '▲' : '▼'}</span>
+                            + Add Section
+                        </span>
+                        {sectionsOpen ? <TbChevronUp className="text-gray-400" /> : <TbChevronDown className="text-gray-400" />}
                     </div>
-                </div>
+                </button>
 
                 {sectionsOpen && (
-                    <div className="p-4 space-y-3">
+                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100 dark:border-gray-700 pt-3">
                         {sections.length === 0 ? (
-                            <p className="text-sm text-gray-400 text-center py-2">
-                                No sections yet. Add sections for exams like NEET (Physics / Chemistry / Biology).
-                            </p>
+                            <div className="text-center py-4">
+                                <p className="text-sm text-gray-400 mb-2">No sections yet.</p>
+                                <Button size="sm" variant="twoTone" icon={<TbPlus />} onClick={addSection}>
+                                    Add First Section
+                                </Button>
+                            </div>
                         ) : sections.map((s, i) => (
-                            <div key={s._key} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                                <div className="md:col-span-1 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-gray-400 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center">
-                                        {i + 1}
-                                    </span>
+                            <div key={s._key} className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+                                            {i + 1}
+                                        </span>
+                                        <span className="text-sm font-medium">{s.title || '(Untitled Section)'}</span>
+                                        <span className="text-xs text-gray-400">{sectionCounts[s._key] || 0} questions</span>
+                                    </div>
+                                    <Button size="xs" variant="plain" className="text-red-500" icon={<TbTrash />}
+                                        onClick={() => removeSection(s._key)} />
                                 </div>
-                                <div className="md:col-span-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     <Input
                                         placeholder="Section title (e.g. Physics)"
                                         value={s.title}
                                         onChange={(e) => updateSection(s._key, 'title', e.target.value)}
                                         size="sm"
                                     />
-                                </div>
-                                <div className="md:col-span-6">
                                     <Input
                                         placeholder="Instructions (e.g. Attempt all 45 questions)"
                                         value={s.instructions}
@@ -343,165 +417,267 @@ const StepQuestions = ({ selectedQuestions, onAddQuestion, onRemoveQuestion, onC
                                         size="sm"
                                     />
                                 </div>
-                                <div className="md:col-span-1 flex justify-end">
-                                    <Button
-                                        size="xs"
-                                        variant="plain"
-                                        className="text-red-500"
-                                        icon={<TbTrash />}
-                                        onClick={() => removeSection(s._key)}
-                                    />
-                                </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* ── Question search ── */}
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
-                <p className="text-sm font-medium">Search Question Bank</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                    <Input
-                        prefix={<TbSearch />}
-                        placeholder="Keyword..."
-                        value={filters.search}
-                        onChange={(e) => setFilter('search', e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="col-span-2 lg:col-span-2"
-                    />
-                    <Select
-                        options={QUESTION_TYPE_OPTIONS}
-                        value={QUESTION_TYPE_OPTIONS.find((o) => o.value === filters.type)}
-                        onChange={(opt) => setFilter('type', opt?.value ?? '')}
-                        placeholder="Type"
-                    />
-                    <Select
-                        options={DIFFICULTY_OPTIONS}
-                        value={DIFFICULTY_OPTIONS.find((o) => o.value === filters.difficulty)}
-                        onChange={(opt) => setFilter('difficulty', opt?.value ?? '')}
-                        placeholder="Difficulty"
-                    />
-                    <Select
-                        options={subjectOptions}
-                        value={subjectOptions.find((o) => o.value === filters.subject_id)}
-                        onChange={(opt) => handleSubjectChange(opt?.value ?? '')}
-                        placeholder="Subject"
-                    />
-                    <Select
-                        options={topicOptions}
-                        value={topicOptions.find((o) => o.value === filters.topic_id)}
-                        onChange={(opt) => setFilter('topic_id', opt?.value ?? '')}
-                        placeholder="Topic"
-                        isDisabled={!filters.subject_id}
-                    />
-                </div>
-                <Button variant="solid" size="sm" icon={<TbSearch />} onClick={searchQuestions} loading={qLoading}>
-                    Search
-                </Button>
+            {/* ── Question search panel ── */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition"
+                    onClick={() => setSearchOpen((v) => !v)}
+                >
+                    <div className="flex items-center gap-2">
+                        <TbSearch className="text-primary text-lg" />
+                        <span className="font-semibold text-sm">Search Question Bank</span>
+                        {qResults.length > 0 && searched && (
+                            <span className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-full px-2 py-0.5">
+                                {qResults.length} found
+                            </span>
+                        )}
+                    </div>
+                    {searchOpen ? <TbChevronUp className="text-gray-400" /> : <TbChevronDown className="text-gray-400" />}
+                </button>
 
-                {searched && (
-                    <div className="mt-2 max-h-60 overflow-y-auto space-y-1 border-t border-gray-100 dark:border-gray-700 pt-2">
-                        {qLoading ? (
-                            <div className="flex justify-center py-4"><Spinner /></div>
-                        ) : qResults.length === 0 ? (
-                            <p className="text-sm text-gray-400 text-center py-3">No questions found</p>
-                        ) : qResults.map((q) => (
-                            <div key={q.id} className="flex items-center justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 gap-2">
-                                <div className="flex-1 min-w-0">
-                                    <div
-                                        className="text-sm truncate"
-                                        dangerouslySetInnerHTML={{ __html: q.question_text?.replace(/<[^>]+>/g, '').substring(0, 100) + '...' }}
-                                    />
-                                    <div className="flex gap-2 mt-0.5">
-                                        <span className="text-xs text-gray-400 capitalize">{q.difficulty}</span>
-                                        <span className="text-xs text-gray-400 uppercase">{q.type}</span>
-                                        {q.subject?.name && <span className="text-xs text-gray-400">{q.subject.name}</span>}
-                                    </div>
-                                </div>
-                                <Button
-                                    size="xs"
-                                    variant="solid"
-                                    icon={<TbPlus />}
-                                    disabled={selectedIds.has(q.id)}
-                                    onClick={() => onAddQuestion(q)}
-                                    className="shrink-0"
-                                >
-                                    {selectedIds.has(q.id) ? 'Added' : 'Add'}
-                                </Button>
+                {searchOpen && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100 dark:border-gray-700 pt-3">
+                        {/* Search + quick filter row */}
+                        <div className="flex gap-2 items-center">
+                            <Input
+                                prefix={<TbSearch />}
+                                placeholder="Search by keyword..."
+                                value={filters.search}
+                                onChange={(e) => setFilter('search', e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                className="flex-1"
+                            />
+                            <Button variant="solid" size="sm" icon={<TbSearch />} onClick={searchQuestions} loading={qLoading}>
+                                Search
+                            </Button>
+                            <button
+                                type="button"
+                                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium border transition
+                                    ${filtersOpen
+                                        ? 'bg-primary/10 text-primary border-primary'
+                                        : 'bg-gray-50 dark:bg-gray-700 text-gray-500 border-gray-200 dark:border-gray-600 hover:border-primary'
+                                    }`}
+                                onClick={() => setFiltersOpen((v) => !v)}
+                            >
+                                <TbFilter className="text-sm" /> Filters
+                            </button>
+                        </div>
+
+                        {/* Expandable filters */}
+                        {filtersOpen && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3">
+                                <Select
+                                    options={QUESTION_TYPE_OPTIONS}
+                                    value={QUESTION_TYPE_OPTIONS.find((o) => o.value === filters.type)}
+                                    onChange={(opt) => setFilter('type', opt?.value ?? '')}
+                                    placeholder="Type"
+                                    size="sm"
+                                />
+                                <Select
+                                    options={DIFFICULTY_OPTIONS}
+                                    value={DIFFICULTY_OPTIONS.find((o) => o.value === filters.difficulty)}
+                                    onChange={(opt) => setFilter('difficulty', opt?.value ?? '')}
+                                    placeholder="Difficulty"
+                                    size="sm"
+                                />
+                                <Select
+                                    options={subjectOptions}
+                                    value={subjectOptions.find((o) => o.value === filters.subject_id)}
+                                    onChange={(opt) => handleSubjectChange(opt?.value ?? '')}
+                                    placeholder="Subject"
+                                    size="sm"
+                                />
+                                <Select
+                                    options={topicOptions}
+                                    value={topicOptions.find((o) => o.value === filters.topic_id)}
+                                    onChange={(opt) => setFilter('topic_id', opt?.value ?? '')}
+                                    placeholder="Topic"
+                                    size="sm"
+                                    isDisabled={!filters.subject_id}
+                                />
                             </div>
-                        ))}
+                        )}
+
+                        {/* Search results */}
+                        {searched && (
+                            <div className="max-h-72 overflow-y-auto space-y-2 border-t border-gray-100 dark:border-gray-700 pt-3">
+                                {qLoading ? (
+                                    <div className="flex justify-center py-6"><Spinner /></div>
+                                ) : qResults.length === 0 ? (
+                                    <div className="text-center py-6 text-gray-400">
+                                        <TbAlertCircle className="mx-auto text-2xl mb-2" />
+                                        <p className="text-sm">No questions found. Try different filters.</p>
+                                    </div>
+                                ) : qResults.map((q) => {
+                                    const alreadyAdded = selectedIds.has(q.id)
+                                    return (
+                                        <div key={q.id}
+                                            className={`flex items-start gap-3 p-3 rounded-xl border transition-all
+                                                ${alreadyAdded
+                                                    ? 'border-green-200 bg-green-50/50 dark:bg-green-900/10 dark:border-green-800'
+                                                    : 'border-gray-200 dark:border-gray-600 hover:border-primary hover:shadow-sm bg-white dark:bg-gray-700/30'
+                                                }`}
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-sm font-medium text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug">
+                                                    {stripHtml(q.question_text).substring(0, 120) || '—'}
+                                                </div>
+                                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[q.type] || 'bg-gray-100 text-gray-500'}`}>
+                                                        {(q.type || '').replace(/_/g, ' ')}
+                                                    </span>
+                                                    {q.difficulty && (
+                                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${DIFF_COLORS[q.difficulty] || 'bg-gray-100 text-gray-500'}`}>
+                                                            {q.difficulty}
+                                                        </span>
+                                                    )}
+                                                    {q.marks && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-500 font-medium">
+                                                            {q.marks} marks
+                                                        </span>
+                                                    )}
+                                                    {q.subject?.name && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
+                                                            {q.subject.name}
+                                                        </span>
+                                                    )}
+                                                    {q.topic?.name && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 font-medium">
+                                                            {q.topic.name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <Button
+                                                size="xs"
+                                                variant={alreadyAdded ? 'default' : 'solid'}
+                                                icon={alreadyAdded ? <TbChecks /> : <TbPlus />}
+                                                disabled={alreadyAdded}
+                                                onClick={() => onAddQuestion(q)}
+                                                className="shrink-0 mt-1"
+                                            >
+                                                {alreadyAdded ? 'Added' : 'Add'}
+                                            </Button>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
 
             {/* ── Selected questions ── */}
-            <div>
-                <p className="text-sm font-medium mb-2">Selected Questions ({selectedQuestions.length})</p>
-                {selectedQuestions.length === 0 ? (
-                    <div className="text-center text-gray-400 py-6 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                        No questions added yet. Search and add questions above.
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <TbChecks className="text-primary text-lg" />
+                        <span className="font-semibold text-sm">Selected Questions</span>
+                        <span className="text-xs bg-primary text-white rounded-full px-2 py-0.5">{selectedQuestions.length}</span>
                     </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <THead>
-                                <Tr>
-                                    <Th>#</Th>
-                                    <Th>Question</Th>
-                                    <Th>Difficulty</Th>
-                                    {sections.length > 0 && <Th>Section</Th>}
-                                    <Th>Marks Override</Th>
-                                    <Th></Th>
-                                </Tr>
-                            </THead>
-                            <TBody>
-                                {selectedQuestions.map((sq, idx) => (
-                                    <Tr key={sq.question_id}>
-                                        <Td className="text-sm text-gray-400 w-8">{idx + 1}</Td>
-                                        <Td>
-                                            <div
-                                                className="text-sm max-w-xs truncate"
-                                                dangerouslySetInnerHTML={{ __html: sq._preview?.replace(/<[^>]+>/g, '').substring(0, 80) + '...' }}
-                                            />
-                                        </Td>
-                                        <Td><span className="text-xs capitalize text-gray-500">{sq._difficulty}</span></Td>
+                    {selectedQuestions.length > 0 && (
+                        <span className="text-xs text-gray-400">Drag to reorder with ↑↓ buttons</span>
+                    )}
+                </div>
+
+                <div className="p-4">
+                    {selectedQuestions.length === 0 ? (
+                        <div className="text-center py-10 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl">
+                            <TbSearch className="mx-auto text-3xl text-gray-300 mb-2" />
+                            <p className="text-sm text-gray-400 mb-1">No questions added yet</p>
+                            <p className="text-xs text-gray-300">Search and add questions from the panel above</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {selectedQuestions.map((sq, idx) => (
+                                <div
+                                    key={sq.question_id}
+                                    className="flex items-start gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-700/20 hover:border-primary/40 transition group"
+                                >
+                                    {/* Order controls */}
+                                    <div className="flex flex-col items-center gap-0.5 pt-0.5 shrink-0">
+                                        <button
+                                            type="button"
+                                            disabled={idx === 0}
+                                            onClick={() => moveQuestion(idx, -1)}
+                                            className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400 transition"
+                                        >
+                                            <TbArrowUp size={14} />
+                                        </button>
+                                        <span className="text-xs font-bold text-gray-400 w-6 text-center">{idx + 1}</span>
+                                        <button
+                                            type="button"
+                                            disabled={idx === selectedQuestions.length - 1}
+                                            onClick={() => moveQuestion(idx, 1)}
+                                            className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400 transition"
+                                        >
+                                            <TbArrowDown size={14} />
+                                        </button>
+                                    </div>
+
+                                    {/* Question content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug mb-2">
+                                            {stripHtml(sq._preview).substring(0, 120) || '—'}
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            {sq._type && (
+                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[sq._type] || 'bg-gray-100 text-gray-500'}`}>
+                                                    {(sq._type || '').replace(/_/g, ' ')}
+                                                </span>
+                                            )}
+                                            {sq._difficulty && (
+                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${DIFF_COLORS[sq._difficulty] || 'bg-gray-100 text-gray-500'}`}>
+                                                    {sq._difficulty}
+                                                </span>
+                                            )}
+                                            {sq._subject && (
+                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
+                                                    {sq._subject}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Controls */}
+                                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
                                         {sections.length > 0 && (
-                                            <Td>
-                                                <Select
-                                                    options={sectionSelectOptions}
-                                                    value={sectionSelectOptions.find((o) => o.value === (sq._sectionKey ?? '')) || sectionSelectOptions[0]}
-                                                    onChange={(opt) => onChangeSectionKey(sq.question_id, opt?.value ?? '')}
-                                                    className="w-44"
-                                                    size="sm"
-                                                />
-                                            </Td>
-                                        )}
-                                        <Td>
-                                            <Input
-                                                type="number"
-                                                className="w-20"
+                                            <Select
+                                                options={sectionSelectOptions}
+                                                value={sectionSelectOptions.find((o) => o.value === (sq._sectionKey ?? '')) || sectionSelectOptions[0]}
+                                                onChange={(opt) => onChangeSectionKey(sq.question_id, opt?.value ?? '')}
+                                                className="w-36"
                                                 size="sm"
-                                                placeholder="Default"
-                                                value={sq.marks_override ?? ''}
-                                                onChange={(e) => onChangeMarks(sq.question_id, e.target.value === '' ? null : Number(e.target.value))}
                                             />
-                                        </Td>
-                                        <Td>
-                                            <Button
-                                                size="xs"
-                                                variant="plain"
-                                                className="text-red-500"
-                                                icon={<TbTrash />}
-                                                onClick={() => onRemoveQuestion(sq.question_id)}
-                                            />
-                                        </Td>
-                                    </Tr>
-                                ))}
-                            </TBody>
-                        </Table>
-                    </div>
-                )}
+                                        )}
+                                        <Input
+                                            type="number"
+                                            className="w-20"
+                                            size="sm"
+                                            placeholder="Marks"
+                                            value={sq.marks_override ?? ''}
+                                            onChange={(e) => onChangeMarks(sq.question_id, e.target.value === '' ? null : Number(e.target.value))}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => onRemoveQuestion(sq.question_id)}
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 transition"
+                                        >
+                                            <TbTrash size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )
@@ -704,6 +880,8 @@ const QuizForm = ({ initialData, onSubmit, submitting, serverErrors }) => {
                 marks_override: null,
                 _preview: q.question_text ?? '',
                 _difficulty: q.difficulty ?? '',
+                _type: q.type ?? '',
+                _subject: q.subject?.name ?? '',
             },
         ])
     }
@@ -862,6 +1040,7 @@ const QuizForm = ({ initialData, onSubmit, submitting, serverErrors }) => {
                         onRemoveQuestion={removeQuestion}
                         onChangeMarks={changeMarks}
                         onChangeSectionKey={changeSectionKey}
+                        onReorder={setSelectedQuestions}
                         sections={sections}
                         onSectionsChange={setSections}
                     />

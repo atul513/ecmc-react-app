@@ -110,11 +110,27 @@ const MyAttempts = () => {
         a.quiz?.title?.toLowerCase().includes(search.toLowerCase())
     )
 
+    const normalizeResult = (raw) => {
+        const src = raw?.attempt ?? raw
+        return {
+            percentage:           src.percentage,
+            passed:               src.is_passed ?? src.passed,
+            total_marks_obtained: src.marks_obtained ?? src.total_marks_obtained ?? src.final_score,
+            total_marks:          src.total_marks,
+            final_score:          src.final_score,
+            correct_count:        src.correct_count ?? src.correct,
+            incorrect_count:      src.incorrect_count ?? src.incorrect,
+            skipped_count:        src.skipped_count ?? src.skipped,
+            time_taken_seconds:   src.time_spent_sec ?? src.time_taken_seconds,
+            quiz_title:           raw?.quiz?.title ?? src.quiz?.title,
+        }
+    }
+
     const viewResult = async (attempt) => {
         setResultDialog({ open: true, result: null, loading: true })
         try {
             const res = await apiGetAttemptResult(attempt.id)
-            setResultDialog({ open: true, result: res?.data, loading: false })
+            setResultDialog({ open: true, result: normalizeResult(res?.data), loading: false })
         } catch {
             toast.push(<Notification type="danger" title="Could not load result" />, { placement: 'top-center' })
             setResultDialog({ open: false, result: null, loading: false })
@@ -177,16 +193,16 @@ const MyAttempts = () => {
                                         </Td>
                                         <Td>{statusBadge(a.status)}</Td>
                                         <Td className="text-sm">
-                                            {a.total_marks_obtained != null
-                                                ? `${a.total_marks_obtained} / ${a.total_marks ?? '?'}`
+                                            {(a.marks_obtained ?? a.total_marks_obtained ?? a.final_score) != null
+                                                ? `${a.marks_obtained ?? a.total_marks_obtained ?? a.final_score} / ${a.total_marks ?? '?'}`
                                                 : '—'}
                                         </Td>
                                         <Td className="text-sm">
-                                            {a.percentage != null ? `${a.percentage}%` : '—'}
+                                            {a.percentage != null ? `${Number(a.percentage).toFixed(1)}%` : '—'}
                                         </Td>
                                         <Td>
                                             {a.status === 'completed' ? (
-                                                a.passed == null ? '—' : a.passed ? (
+                                                (a.is_passed ?? a.passed) == null ? '—' : (a.is_passed ?? a.passed) ? (
                                                     <span className="text-emerald-600 flex items-center gap-1 text-sm font-medium">
                                                         <TbCheck /> Pass
                                                     </span>

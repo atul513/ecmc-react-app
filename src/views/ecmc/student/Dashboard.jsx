@@ -28,8 +28,10 @@ const SectionTitle = ({ title }) => (
 const StatusBadge = ({ status }) => {
     const map = {
         completed: 'bg-emerald-100 text-emerald-700',
+        passed:    'bg-emerald-100 text-emerald-700',
         pending:   'bg-amber-100 text-amber-700',
         ongoing:   'bg-blue-100 text-blue-700',
+        in_progress: 'bg-blue-100 text-blue-700',
         failed:    'bg-red-100 text-red-600',
         active:    'bg-emerald-100 text-emerald-700',
         expired:   'bg-gray-100 text-gray-500',
@@ -78,12 +80,24 @@ const StudentDashboard = () => {
     const subscription = data?.subscription ?? null
     const recentAttempts = data?.recent_attempts ?? []
 
+    // Derived quiz values
+    const quizTotal = quiz.total_attempts ?? quiz.total ?? 0
+    const quizCompleted = (quizTotal - (quiz.in_progress ?? 0)) || quiz.completed || 0
+    const quizAvg = quiz.avg_score ?? quiz.best_score ?? 0
+    const quizInProgress = quiz.in_progress ?? 0
+
+    // Derived practice values
+    const practiceSets = practice.sets_attempted ?? practice.total ?? 0
+    const practiceAnswered = practice.total_answered ?? 0
+    const practiceCorrect = practice.correct_answers ?? 0
+    const practiceAvg = practiceAnswered > 0 ? Math.round((practiceCorrect / practiceAnswered) * 100) : 0
+
     return (
         <div className="space-y-8">
             {/* Welcome */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Welcome back, {user?.firstName || user?.name || 'Student'} 👋
+                    Welcome back, {data?.user?.name || user?.firstName || user?.name || 'Student'} 👋
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                     Here's a summary of your learning activity.
@@ -94,20 +108,21 @@ const StudentDashboard = () => {
             <div>
                 <SectionTitle title="Quiz Overview" />
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <StatCard icon={TbClipboardCheck} label="Total Quizzes" value={quiz.total} color="text-indigo-600" bg="bg-indigo-50 dark:bg-indigo-900/20" />
-                    <StatCard icon={TbCheck} label="Completed" value={quiz.completed} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
-                    <StatCard icon={TbTrophy} label="Avg Score" value={quiz.avg_score != null ? `${quiz.avg_score}%` : '—'} color="text-amber-600" bg="bg-amber-50 dark:bg-amber-900/20" />
-                    <StatCard icon={TbClock} label="In Progress" value={quiz.in_progress} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
+                    <StatCard icon={TbClipboardCheck} label="Total Attempts" value={quizTotal} color="text-indigo-600" bg="bg-indigo-50 dark:bg-indigo-900/20" />
+                    <StatCard icon={TbCheck} label="Completed" value={quizCompleted} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
+                    <StatCard icon={TbTrophy} label="Avg Score" value={`${quizAvg}%`} color="text-amber-600" bg="bg-amber-50 dark:bg-amber-900/20" />
+                    <StatCard icon={TbClock} label="In Progress" value={quizInProgress} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
                 </div>
             </div>
 
             {/* Practice Stats */}
             <div>
                 <SectionTitle title="Practice Sets Overview" />
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <StatCard icon={TbPencil} label="Total Sets" value={practice.total} color="text-violet-600" bg="bg-violet-50 dark:bg-violet-900/20" />
-                    <StatCard icon={TbCheck} label="Completed" value={practice.completed} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
-                    <StatCard icon={TbChartBar} label="Avg Score" value={practice.avg_score != null ? `${practice.avg_score}%` : '—'} color="text-orange-600" bg="bg-orange-50 dark:bg-orange-900/20" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatCard icon={TbPencil} label="Sets Attempted" value={practiceSets} color="text-violet-600" bg="bg-violet-50 dark:bg-violet-900/20" />
+                    <StatCard icon={TbClipboardCheck} label="Questions Answered" value={practiceAnswered} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
+                    <StatCard icon={TbCheck} label="Correct Answers" value={practiceCorrect} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
+                    <StatCard icon={TbChartBar} label="Accuracy" value={`${practiceAvg}%`} color="text-orange-600" bg="bg-orange-50 dark:bg-orange-900/20" />
                 </div>
             </div>
 
@@ -161,15 +176,29 @@ const StudentDashboard = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {recentAttempts.map((a, i) => (
-                                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
-                                        <td className="px-5 py-3 font-medium text-gray-800 dark:text-gray-200">{a.title ?? a.quiz_title ?? a.practice_title ?? '—'}</td>
-                                        <td className="px-5 py-3 text-gray-600 dark:text-gray-300">
-                                            {a.score != null ? `${a.score}%` : '—'}
+                                {recentAttempts.map((a) => (
+                                    <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                                        <td className="px-5 py-3">
+                                            <div className="font-medium text-gray-800 dark:text-gray-200">
+                                                {a.quiz?.title ?? a.title ?? a.quiz_title ?? '—'}
+                                            </div>
+                                            {a.quiz?.type && (
+                                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium mt-0.5 inline-block ${a.quiz.type === 'exam' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                                                    {a.quiz.type}
+                                                </span>
+                                            )}
                                         </td>
-                                        <td className="px-5 py-3"><StatusBadge status={a.status} /></td>
+                                        <td className="px-5 py-3 text-gray-600 dark:text-gray-300">
+                                            {a.percentage != null ? `${Number(a.percentage).toFixed(1)}%` : a.score != null ? `${a.score}%` : '—'}
+                                            {a.final_score != null && (
+                                                <div className="text-xs text-gray-400">{Number(a.final_score).toFixed(1)} marks</div>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <StatusBadge status={a.is_passed ? 'passed' : a.status} />
+                                        </td>
                                         <td className="px-5 py-3 text-gray-500 dark:text-gray-400">
-                                            {a.created_at ? new Date(a.created_at).toLocaleDateString() : '—'}
+                                            {(a.submitted_at ?? a.created_at) ? new Date(a.submitted_at ?? a.created_at).toLocaleDateString() : '—'}
                                         </td>
                                     </tr>
                                 ))}

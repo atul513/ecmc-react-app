@@ -11,7 +11,13 @@ import {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (v, fallback = '—') => (v != null ? v : fallback)
-const fmtDate = (d) => d ? new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'
+const fmtDate = (d) => {
+    if (!d) return '—'
+    // If API already returns formatted string (e.g. "01 Apr 2026, 08:46 AM"), use it directly
+    const parsed = new Date(d)
+    if (isNaN(parsed.getTime())) return d
+    return parsed.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+}
 const fmtTime = (secs) => {
     if (secs == null) return '—'
     const h = Math.floor(secs / 3600)
@@ -102,33 +108,50 @@ const QuestionCard = ({ q, idx }) => {
     const qType   = qData.type
 
     const renderStudentAnswer = () => {
-        if (status === 'skipped') return <span className="text-gray-400 italic">Not answered</span>
+        const sa = q.student_answer
+        if (sa == null || status === 'skipped') return <span className="text-gray-400 italic">Not answered</span>
+
+        // student_answer might be a plain string (e.g. "SELECT")
+        if (typeof sa === 'string') return sa
 
         if (['mcq', 'true_false', 'multi_select'].includes(qType)) {
-            const studentIds = q.student_answer?.selected_option_ids ?? []
+            // Could be { selected_option_ids: [...] } or { selected_option_id: id }
+            const studentIds = sa.selected_option_ids ?? (sa.selected_option_id != null ? [sa.selected_option_id] : [])
             if (!studentIds.length) return <span className="text-gray-400 italic">Not answered</span>
             const opts = qData.options ?? []
             const selected = opts.filter((o) => studentIds.includes(o.id))
             return selected.length
-                ? selected.map((o) => o.option_text).join(', ')
-                : <span className="text-gray-400 italic">—</span>
+                ? selected.map((o) => o.option_text ?? o.text).join(', ')
+                : <span className="text-gray-400 italic">Not answered</span>
         }
         if (['short_answer', 'long_answer'].includes(qType)) {
-            return q.student_answer?.text_answer || <span className="text-gray-400 italic">—</span>
+            return sa.text_answer || sa.answer || <span className="text-gray-400 italic">—</span>
         }
         if (qType === 'fill_blank') {
-            const blanks = q.student_answer?.fill_blank_answers ?? []
-            if (!blanks.length) return <span className="text-gray-400 italic">—</span>
-            return blanks.map((b) => `Blank ${b.blank_number}: ${b.answer}`).join(' | ')
+            const blanks = sa.fill_blank_answers
+            if (!blanks) return <span className="text-gray-400 italic">—</span>
+            // Could be array or object { "1": "answer1", "2": "answer2" }
+            if (Array.isArray(blanks)) {
+                return blanks.map((b) => `Blank ${b.blank_number}: ${b.answer}`).join(' | ')
+            }
+            return Object.entries(blanks).map(([k, v]) => `Blank ${k}: ${v}`).join(' | ')
         }
         if (qType === 'match_column') {
-            const pairs = q.student_answer?.match_pairs_answer ?? []
-            if (!pairs.length) return <span className="text-gray-400 italic">—</span>
+            const pairs = sa.match_pairs_answer
+            if (!pairs) return <span className="text-gray-400 italic">—</span>
             const allPairs = qData.match_pairs ?? []
-            return pairs.map((p) => {
-                const pair = allPairs.find((mp) => mp.id === p.pair_id)
-                const matched = allPairs.find((mp) => mp.id === p.matched_with || String(mp.id) === String(p.matched_with))
-                return `${pair?.column_a_text ?? p.pair_id} → ${matched?.column_b_text ?? p.matched_with}`
+            if (Array.isArray(pairs)) {
+                return pairs.map((p) => {
+                    const pair = allPairs.find((mp) => mp.id === p.pair_id)
+                    const matched = allPairs.find((mp) => mp.id === p.matched_with || String(mp.id) === String(p.matched_with))
+                    return `${pair?.column_a_text ?? p.pair_id} → ${matched?.column_b_text ?? p.matched_with}`
+                }).join(' | ')
+            }
+            // Object format: { "pair_id": "matched_id" }
+            return Object.entries(pairs).map(([k, v]) => {
+                const pair = allPairs.find((mp) => String(mp.id) === k)
+                const matched = allPairs.find((mp) => String(mp.id) === v)
+                return `${pair?.column_a_text ?? k} → ${matched?.column_b_text ?? v}`
             }).join(' | ')
         }
         return <span className="text-gray-400 italic">—</span>
@@ -138,9 +161,14 @@ const QuestionCard = ({ q, idx }) => {
         if (['mcq', 'true_false', 'multi_select'].includes(qType)) {
             const opts = qData.options ?? []
             const correct = opts.filter((o) => o.is_correct)
-            return correct.length
-                ? correct.map((o) => o.option_text).join(', ')
-                : <span className="text-gray-400 italic">—</span>
+            if (correct.length) return correct.map((o) => o.option_text ?? o.text).join(', ')
+            // Fallback to correct_answer string from API
+            if (typeof q.correct_answer === 'string' && q.correct_answer) return q.correct_answer
+            return <span className="text-gray-400 italic">—</span>
+        }
+        // For non-option types, correct_answer comes as a string from the API
+        if (typeof q.correct_answer === 'string' && q.correct_answer) {
+            return q.correct_answer
         }
         if (['short_answer', 'long_answer'].includes(qType)) {
             return q.correct_answer?.text ?? qData.answer_key ?? <span className="text-gray-400 italic">—</span>
@@ -182,14 +210,14 @@ const QuestionCard = ({ q, idx }) => {
                                 {qData.difficulty}
                             </span>
                         )}
-                        {qData.subject?.name && (
+                        {(qData.subject?.name ?? qData.subject) && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                                {qData.subject.name}
+                                {qData.subject?.name ?? qData.subject}
                             </span>
                         )}
-                        {qData.topic?.name && (
+                        {(qData.topic?.name ?? qData.topic) && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
-                                {qData.topic.name}
+                                {qData.topic?.name ?? qData.topic}
                             </span>
                         )}
                         <span className="text-xs text-gray-400 capitalize">{(qType ?? '').replace('_', ' ')}</span>
@@ -212,7 +240,10 @@ const QuestionCard = ({ q, idx }) => {
                     {['mcq', 'true_false', 'multi_select'].includes(qType) && qData.options?.length > 0 && (
                         <div className="space-y-2">
                             {qData.options.map((opt, i) => {
-                                const studentIds = q.student_answer?.selected_option_ids ?? []
+                                const sa = q.student_answer
+                                const studentIds = (sa && typeof sa === 'object')
+                                    ? (sa.selected_option_ids ?? (sa.selected_option_id != null ? [sa.selected_option_id] : []))
+                                    : []
                                 const isStudentPick = studentIds.includes(opt.id)
                                 const isCorrect = opt.is_correct
                                 let cls = 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30'
@@ -223,12 +254,26 @@ const QuestionCard = ({ q, idx }) => {
                                         <span className="w-6 h-6 rounded-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">
                                             {LABELS[i] ?? i + 1}
                                         </span>
-                                        <span className="text-sm flex-1">{opt.option_text}</span>
+                                        <span className="text-sm flex-1">{opt.option_text ?? opt.text}</span>
                                         {isCorrect && <TbCheck className="text-emerald-600 shrink-0" />}
                                         {isStudentPick && !isCorrect && <TbX className="text-red-500 shrink-0" />}
                                     </div>
                                 )
                             })}
+                        </div>
+                    )}
+
+                    {/* MCQ answer summary row */}
+                    {['mcq', 'true_false', 'multi_select'].includes(qType) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className={`rounded-xl p-4 ${status === 'skipped' ? 'bg-gray-50 dark:bg-gray-700/30' : status === 'correct' ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                                <p className="text-xs font-medium text-gray-500 mb-1">Your Answer</p>
+                                <p className="text-sm text-gray-800 dark:text-gray-200">{renderStudentAnswer()}</p>
+                            </div>
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4">
+                                <p className="text-xs font-medium text-gray-500 mb-1">Correct Answer</p>
+                                <p className="text-sm text-gray-800 dark:text-gray-200">{renderCorrectAnswer()}</p>
+                            </div>
                         </div>
                     )}
 
@@ -248,10 +293,10 @@ const QuestionCard = ({ q, idx }) => {
 
                     {/* Meta row */}
                     <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400 pt-1">
-                        {q.time_spent_seconds != null && (
+                        {(q.time_spent_sec ?? q.time_spent_seconds) != null && (
                             <span className="flex items-center gap-1.5">
                                 <TbClock className="text-sm" />
-                                Time: {fmtTime(q.time_spent_seconds)}
+                                Time: {fmtTime(q.time_spent_sec ?? q.time_spent_seconds)}
                             </span>
                         )}
                         {q.visit_count != null && (
@@ -260,15 +305,20 @@ const QuestionCard = ({ q, idx }) => {
                                 Visited: {q.visit_count}×
                             </span>
                         )}
-                        {q.bookmarked && (
+                        {(q.is_bookmarked || q.bookmarked) && (
                             <span className="flex items-center gap-1.5 text-amber-500">
                                 <TbBookmark className="text-sm" />
                                 Bookmarked
                             </span>
                         )}
-                        {q.negative_marks != null && Number(q.negative_marks) > 0 && (
+                        {(q.negative_deducted ?? q.negative_marks_applied) != null && Number(q.negative_deducted ?? q.negative_marks_applied) > 0 && (
                             <span className="flex items-center gap-1.5 text-red-500">
-                                Negative: −{q.negative_marks}
+                                Negative: −{q.negative_deducted ?? q.negative_marks_applied}
+                            </span>
+                        )}
+                        {q.negative_marks != null && Number(q.negative_marks) > 0 && (
+                            <span className="flex items-center gap-1.5 text-gray-400">
+                                (Max negative: −{q.negative_marks})
                             </span>
                         )}
                         {q.grader_feedback && (
@@ -355,13 +405,34 @@ const QuizReport = () => {
     }
 
     const attempt    = report.attempt ?? {}
-    const score      = report.score ?? {}
-    const diffBreak  = report.difficulty_breakdown ?? []
-    const subBreak   = report.subject_breakdown ?? []
+    const rawScore   = report.score_summary ?? report.score ?? {}
+    const score      = {
+        total_marks:              rawScore.total_marks,
+        total_marks_obtained:     rawScore.marks_obtained ?? rawScore.total_marks_obtained,
+        negative_marks_deducted:  rawScore.negative_marks_total ?? rawScore.negative_marks_deducted,
+        final_score:              rawScore.final_score,
+        percentage:               rawScore.percentage,
+        accuracy_percentage:      rawScore.accuracy ?? rawScore.accuracy_percentage,
+        correct_count:            rawScore.correct ?? rawScore.correct_count,
+        incorrect_count:          rawScore.incorrect ?? rawScore.incorrect_count,
+        skipped_count:            rawScore.skipped ?? rawScore.skipped_count,
+        time_taken_seconds:       rawScore.time_taken_seconds ?? attempt.time_spent_sec,
+        rank:                     rawScore.rank,
+        passed:                   rawScore.is_passed ?? rawScore.passed,
+    }
+    // Breakdowns: API returns objects { "easy": {...} }, convert to arrays
+    const rawDiff = report.breakdown_by_difficulty ?? report.difficulty_breakdown
+    const diffBreak = rawDiff
+        ? (Array.isArray(rawDiff) ? rawDiff : Object.entries(rawDiff).map(([key, val]) => ({ difficulty: key, ...val })))
+        : []
+    const rawSub = report.breakdown_by_subject ?? report.subject_breakdown
+    const subBreak = rawSub
+        ? (Array.isArray(rawSub) ? rawSub : Object.entries(rawSub).map(([key, val]) => ({ subject: key, ...val })))
+        : []
     const questions  = report.questions ?? []
     const quizInfo   = attempt.quiz ?? report.quiz ?? {}
     const studentInfo = attempt.user ?? report.student ?? {}
-    const passed     = score.passed ?? score.pass_fail === 'pass'
+    const passed     = score.passed ?? false
 
     const filteredQs = questions.filter((q) => {
         const status = q.status ?? (q.is_correct ? 'correct' : q.is_skipped ? 'skipped' : 'incorrect')
@@ -419,7 +490,7 @@ const QuizReport = () => {
                     {[
                         { label: 'Started At',    value: fmtDate(attempt.started_at) },
                         { label: 'Submitted At',  value: fmtDate(attempt.submitted_at) },
-                        { label: 'Time Spent',    value: fmtTime(score.time_taken_seconds ?? attempt.time_taken_seconds) },
+                        { label: 'Time Spent',    value: attempt.time_spent ?? fmtTime(score.time_taken_seconds) },
                         { label: 'Attempt No.',   value: attempt.attempt_number != null ? `#${attempt.attempt_number}` : '—' },
                         { label: 'IP Address',    value: attempt.ip_address ?? '—' },
                         { label: 'Quiz Type',     value: quizInfo.type ?? '—' },
@@ -510,9 +581,9 @@ const QuizReport = () => {
                     <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
                         {[
                             { key: 'all',       label: 'All',       count: questions.length },
-                            { key: 'correct',   label: 'Correct',   count: score.correct_count   ?? questions.filter((q) => q.is_correct).length },
-                            { key: 'incorrect', label: 'Incorrect', count: score.incorrect_count ?? questions.filter((q) => !q.is_correct && !q.is_skipped).length },
-                            { key: 'skipped',   label: 'Skipped',   count: score.skipped_count   ?? questions.filter((q) => q.is_skipped).length },
+                            { key: 'correct',   label: 'Correct',   count: score.correct_count   ?? questions.filter((q) => q.status === 'correct').length },
+                            { key: 'incorrect', label: 'Incorrect', count: score.incorrect_count ?? questions.filter((q) => q.status === 'incorrect').length },
+                            { key: 'skipped',   label: 'Skipped',   count: score.skipped_count   ?? questions.filter((q) => q.status === 'skipped').length },
                         ].map(({ key, label, count }) => (
                             <button
                                 key={key}

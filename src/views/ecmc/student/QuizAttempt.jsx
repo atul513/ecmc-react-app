@@ -284,16 +284,40 @@ const QuizAttempt = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timeLeft])
 
+    // Normalize result from various API response shapes
+    const normalizeResult = (raw) => {
+        // Could be flat { percentage, is_passed, ... } or nested { attempt: { ... }, quiz: { ... } }
+        const src = raw?.attempt ?? raw
+        return {
+            percentage:           src.percentage,
+            passed:               src.is_passed ?? src.passed,
+            total_marks_obtained: src.marks_obtained ?? src.total_marks_obtained ?? src.final_score,
+            total_marks:          src.total_marks,
+            final_score:          src.final_score,
+            correct_count:        src.correct_count ?? src.correct,
+            incorrect_count:      src.incorrect_count ?? src.incorrect,
+            skipped_count:        src.skipped_count ?? src.skipped,
+            time_taken_seconds:   src.time_spent_sec ?? src.time_taken_seconds,
+            quiz_title:           raw?.quiz?.title ?? src.quiz?.title,
+        }
+    }
+
     const doSubmit = useCallback(async () => {
         setSubmitting(true)
         setShowConfirm(false)
         setShowPalette(false)
         try {
-            await apiSubmitAttempt(attemptId)
+            const submitRes = await apiSubmitAttempt(attemptId)
+            // Try dedicated result endpoint first
             try {
                 const res = await apiGetAttemptResult(attemptId)
-                setResult(res?.data)
-            } catch { /* result may not be immediate */ }
+                setResult(normalizeResult(res?.data))
+            } catch {
+                // Fallback: use the submit response itself
+                if (submitRes?.data) {
+                    setResult(normalizeResult(submitRes.data))
+                }
+            }
             setSubmitted(true)
         } catch {
             toast.push(<Notification type="danger" title="Failed to submit quiz" />, { placement: 'top-center' })
@@ -309,9 +333,9 @@ const QuizAttempt = () => {
         doSubmit()
     }
 
-    const saveAnswer = useCallback(async (wrapperId, payload) => {
+    const saveAnswer = useCallback(async (questionId, payload) => {
         try {
-            await apiSaveAnswer(attemptId, { quiz_question_id: wrapperId, ...payload })
+            await apiSaveAnswer(attemptId, { question_id: questionId, ...payload })
         } catch { /* silent */ }
     }, [attemptId])
 
@@ -324,13 +348,19 @@ const QuizAttempt = () => {
             : [optionId]
         const payload = { selected_option_ids: selected }
         setAnswers((prev) => ({ ...prev, [wrapper.id]: { ...prev[wrapper.id], ...payload } }))
-        saveAnswer(wrapper.id, payload)
+        saveAnswer(wrapper.question_id ?? wrapper.question?.id, payload)
     }
+
+    // Resolve actual question_id from wrapper.id for the API
+    const getQuestionId = useCallback((wrapperId) => {
+        const w = wrappers.find((w) => w.id === wrapperId)
+        return w?.question_id ?? w?.question?.id ?? wrapperId
+    }, [wrappers])
 
     const handleTextChange = (wrapperId, text) => {
         setAnswers((prev) => ({ ...prev, [wrapperId]: { ...prev[wrapperId], text_answer: text } }))
         clearTimeout(textSaveTimers.current[wrapperId])
-        textSaveTimers.current[wrapperId] = setTimeout(() => saveAnswer(wrapperId, { text_answer: text }), 800)
+        textSaveTimers.current[wrapperId] = setTimeout(() => saveAnswer(getQuestionId(wrapperId), { text_answer: text }), 800)
     }
 
     const handleBlankChange = (wrapperId, blankNumber, text) => {
@@ -338,7 +368,7 @@ const QuizAttempt = () => {
             const current = prev[wrapperId]?.fill_blank_answers || []
             const updated = [...current.filter((b) => b.blank_number !== blankNumber), { blank_number: blankNumber, answer: text }]
             clearTimeout(textSaveTimers.current[`${wrapperId}_${blankNumber}`])
-            textSaveTimers.current[`${wrapperId}_${blankNumber}`] = setTimeout(() => saveAnswer(wrapperId, { fill_blank_answers: updated }), 800)
+            textSaveTimers.current[`${wrapperId}_${blankNumber}`] = setTimeout(() => saveAnswer(getQuestionId(wrapperId), { fill_blank_answers: updated }), 800)
             return { ...prev, [wrapperId]: { ...prev[wrapperId], fill_blank_answers: updated } }
         })
     }
@@ -347,7 +377,7 @@ const QuizAttempt = () => {
         setAnswers((prev) => {
             const current = prev[wrapperId]?.match_pairs_answer || []
             const updated = [...current.filter((m) => m.pair_id !== pairId), { pair_id: pairId, matched_with: matchedWith }]
-            saveAnswer(wrapperId, { match_pairs_answer: updated })
+            saveAnswer(getQuestionId(wrapperId), { match_pairs_answer: updated })
             return { ...prev, [wrapperId]: { ...prev[wrapperId], match_pairs_answer: updated } }
         })
     }
@@ -391,7 +421,7 @@ const QuizAttempt = () => {
                         <h2 className="text-2xl font-bold mb-1">
                             {result?.passed ? 'Well Done!' : 'Quiz Submitted!'}
                         </h2>
-                        <p className="text-gray-400 text-sm">{attemptData?.quiz?.title}</p>
+                        <p className="text-gray-400 text-sm">{attemptData?.quiz?.title ?? result?.quiz_title}</p>
                     </div>
 
                     {result ? (
