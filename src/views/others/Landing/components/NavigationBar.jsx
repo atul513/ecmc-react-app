@@ -10,26 +10,10 @@ import { useNavigate } from 'react-router'
 
 
 const navMenu = [
-    {
-        title: 'Features',
-        value: 'features',
-        to: 'features',
-    },
-    {
-        title: 'Demos',
-        value: 'demos',
-        to: 'demos',
-    },
-    {
-        title: 'Components',
-        value: 'components',
-        to: 'components',
-    },
-    {
-        title: 'Documentations',
-        value: 'documentations',
-        href: 'https://ecme-react.themenate.net/guide/documentation/introduction',
-    },
+    { title: 'Features', value: 'features', to: 'features' },
+    { title: 'Pricing', value: 'pricing', to: 'pricing' },
+    { title: 'About Us', value: 'about', href: '/about' },
+    { title: 'Contact', value: 'contact', href: '/contact' },
 ]
 
 const Navigation = ({ toggleMode, mode }) => {
