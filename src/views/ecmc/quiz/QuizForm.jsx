@@ -94,7 +94,7 @@ const StepDetails = ({ control, errors, categoryOptions, watchAccessType }) => (
                 <MathRichTextEditor
                     content={field.value ?? ''}
                     onChange={(val) => field.onChange(typeof val === 'object' ? (val.html ?? '') : val)}
-                    placeholder="Write a description for this quiz..."
+                    placeholder="Write a description for this exam..."
                 />
             )} />
         </FormItem>
@@ -102,7 +102,7 @@ const StepDetails = ({ control, errors, categoryOptions, watchAccessType }) => (
         <FormItem
             label="Instructions for Students"
             className="md:col-span-2"
-            extra={<span className="text-xs text-gray-400">Shown to students before they start the quiz</span>}
+            extra={<span className="text-xs text-gray-400">Shown to students before they start the exam</span>}
         >
             <Controller name="instructions" control={control} render={({ field }) => (
                 <MathRichTextEditor
@@ -424,10 +424,10 @@ const StepQuestions = ({ selectedQuestions, onAddQuestion, onRemoveQuestion, onC
             </div>
 
             {/* ── Question search panel ── */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
                 <button
                     type="button"
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition"
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition rounded-xl"
                     onClick={() => setSearchOpen((v) => !v)}
                 >
                     <div className="flex items-center gap-2">
@@ -696,14 +696,14 @@ const StepSchedules = ({ schedules, onChange }) => {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500">
-                    Define one or more time windows when this quiz is available. Leave empty for always available.
+                    Define one or more time windows when this exam is available. Leave empty for always available.
                 </p>
                 <Button size="sm" variant="solid" icon={<TbPlus />} onClick={add}>Add Schedule</Button>
             </div>
 
             {schedules.length === 0 ? (
                 <div className="text-center text-gray-400 py-8 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                    No schedules — quiz will always be accessible
+                    No schedules — exam will always be accessible
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -830,13 +830,14 @@ const QuizForm = ({ initialData, onSubmit, submitting, serverErrors }) => {
             ? {
                 title: initialData.title ?? '',
                 description: initialData.description ?? '',
+                instructions: initialData.instructions ?? '',
                 category_id: initialData.category_id ?? null,
                 type: initialData.type ?? 'quiz',
                 access_type: initialData.access_type ?? 'free',
                 visibility: initialData.visibility ?? 'public',
                 price: initialData.price ?? null,
             }
-            : { title: '', description: '', category_id: null, type: 'quiz', access_type: 'free', visibility: 'public', price: null },
+            : { title: '', description: '', instructions: '', category_id: null, type: 'quiz', access_type: 'free', visibility: 'public', price: null },
     })
 
     // Step 2 form
@@ -1060,7 +1061,7 @@ const QuizForm = ({ initialData, onSubmit, submitting, serverErrors }) => {
                         <Button variant="solid" onClick={goNext}>Next</Button>
                     ) : (
                         <Button variant="solid" loading={submitting} onClick={handleFinalSubmit}>
-                            {submitting ? 'Saving...' : 'Save Quiz'}
+                            {submitting ? 'Saving...' : 'Save Exam'}
                         </Button>
                     )}
                 </div>

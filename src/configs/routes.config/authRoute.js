@@ -31,6 +31,12 @@ const authRoute = [
         component: lazy(() => import('@/views/auth/OtpVerification')),
         authority: [],
     },
+    {
+        key: 'googleCallback',
+        path: `/auth/google/callback`,
+        component: lazy(() => import('@/views/auth/GoogleCallback')),
+        authority: [],
+    },
 ]
 
 export default authRoute

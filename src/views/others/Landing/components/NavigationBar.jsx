@@ -12,6 +12,9 @@ import { useNavigate } from 'react-router'
 const navMenu = [
     { title: 'Features', value: 'features', to: 'features' },
     { title: 'Pricing', value: 'pricing', to: 'pricing' },
+    { title: 'Explore', value: 'home', href: '/home' },
+    { title: 'Practice Sets', value: 'practice-sets', href: '/practice-sets' },
+    { title: 'Exams', value: 'exams', href: '/exams' },
     { title: 'About Us', value: 'about', href: '/about' },
     { title: 'Contact', value: 'contact', href: '/contact' },
 ]

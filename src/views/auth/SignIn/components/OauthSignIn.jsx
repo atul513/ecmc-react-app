@@ -1,44 +1,25 @@
+import { useState } from 'react'
 import Button from '@/components/ui/Button'
-import { useAuth } from '@/auth'
-import {
-    apiGoogleOauthSignIn,
-    apiGithubOauthSignIn,
-} from '@/services/OAuthServices'
+import { apiGetGoogleRedirectUrl } from '@/services/OAuthServices'
 
 const OauthSignIn = ({ setMessage, disableSubmit }) => {
-    const { oAuthSignIn } = useAuth()
+    const [loading, setLoading] = useState(false)
 
     const handleGoogleSignIn = async () => {
-        if (!disableSubmit) {
-            oAuthSignIn(async ({ redirect, onSignIn }) => {
-                try {
-                    const resp = await apiGoogleOauthSignIn()
-                    if (resp) {
-                        const { token, user } = resp
-                        onSignIn({ accessToken: token }, user)
-                        redirect()
-                    }
-                } catch (error) {
-                    setMessage?.(error?.toString() || '')
-                }
-            })
-        }
-    }
-
-    const handleGithubSignIn = async () => {
-        if (!disableSubmit) {
-            oAuthSignIn(async ({ redirect, onSignIn }) => {
-                try {
-                    const resp = await apiGithubOauthSignIn()
-                    if (resp) {
-                        const { token, user } = resp
-                        onSignIn({ accessToken: token }, user)
-                        redirect()
-                    }
-                } catch (error) {
-                    setMessage?.(error?.toString() || '')
-                }
-            })
+        if (disableSubmit || loading) return
+        setLoading(true)
+        try {
+            const resp = await apiGetGoogleRedirectUrl()
+            const url = resp?.url || resp?.redirect_url || resp?.data?.url
+            if (url) {
+                window.location.href = url
+            } else {
+                setMessage?.('Could not get Google sign-in URL. Please try again.')
+                setLoading(false)
+            }
+        } catch (error) {
+            setMessage?.(error?.response?.data?.message || 'Google sign-in failed. Please try again.')
+            setLoading(false)
         }
     }
 
@@ -47,6 +28,7 @@ const OauthSignIn = ({ setMessage, disableSubmit }) => {
             <Button
                 className="flex-1"
                 type="button"
+                loading={loading}
                 onClick={handleGoogleSignIn}
             >
                 <div className="flex items-center justify-center gap-2">
@@ -56,20 +38,6 @@ const OauthSignIn = ({ setMessage, disableSubmit }) => {
                         alt="Google sign in"
                     />
                     <span>Google</span>
-                </div>
-            </Button>
-            <Button
-                className="flex-1"
-                type="button"
-                onClick={handleGithubSignIn}
-            >
-                <div className="flex items-center justify-center gap-2">
-                    <img
-                        className="h-[25px] w-[25px]"
-                        src="/img/others/github.png"
-                        alt="Google sign in"
-                    />
-                    <span>Github</span>
                 </div>
             </Button>
         </div>

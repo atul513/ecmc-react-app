@@ -189,6 +189,15 @@ const ecmcRoute = [
         meta: { pageContainerType: 'contained' },
     },
 
+    // ─── CONTACT SUBMISSIONS (Admin + SuperAdmin) ────────────────
+    {
+        key: 'ecmc.admin.contact-submissions',
+        path: `${ECMC_PREFIX_PATH}/admin/contact-submissions`,
+        component: lazy(() => import('@/views/ecmc/admin/ContactSubmissions')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+
     // ─── BLOG MODULE (Admin + SuperAdmin) ─────────────────────────
     {
         key: 'ecmc.blog.list',

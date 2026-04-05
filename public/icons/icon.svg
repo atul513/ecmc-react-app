@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#2a85ff"/>
+  <!-- Clipboard body -->
+  <rect x="148" y="140" width="216" height="264" rx="20" fill="white"/>
+  <!-- Clipboard top clip -->
+  <rect x="208" y="116" width="96" height="48" rx="10" fill="#0069f6"/>
+  <!-- Lines -->
+  <rect x="180" y="210" width="152" height="14" rx="7" fill="#e5e5e5"/>
+  <rect x="180" y="240" width="120" height="14" rx="7" fill="#e5e5e5"/>
+  <!-- Checkmark circle -->
+  <circle cx="256" cy="330" r="46" fill="#2a85ff"/>
+  <!-- Checkmark -->
+  <path d="M234 330 L249 345 L278 316" stroke="white" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

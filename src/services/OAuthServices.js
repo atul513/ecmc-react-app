@@ -1,10 +1,16 @@
-import { signInWithFirebaseGoogle } from './firebase/FirebaseGoogleAuth'
-import { signInWithFirebaseGithub } from './firebase/FirebaseGithubAuth'
+import ApiService from './ApiService'
 
-export async function apiGoogleOauthSignIn() {
-    return await signInWithFirebaseGoogle()
+export async function apiGetGoogleRedirectUrl() {
+    return ApiService.fetchDataWithAxios({
+        url: '/auth/google/redirect',
+        method: 'get',
+    })
 }
 
-export async function apiGithubOauthSignIn() {
-    return await signInWithFirebaseGithub()
+export async function apiGoogleCallback(code) {
+    return ApiService.fetchDataWithAxios({
+        url: '/auth/google/callback',
+        method: 'post',
+        data: { code },
+    })
 }

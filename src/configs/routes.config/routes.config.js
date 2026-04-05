@@ -81,6 +81,27 @@ export const openRoutes = [
         authority: [],
         meta: legalMeta,
     },
+    {
+        key: 'public-home',
+        path: `/home`,
+        component: lazy(() => import('@/views/others/PublicHome')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'public-practice-sets',
+        path: `/practice-sets`,
+        component: lazy(() => import('@/views/others/PublicPracticeSets')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'public-exams',
+        path: `/exams`,
+        component: lazy(() => import('@/views/others/PublicExams')),
+        authority: [],
+        meta: legalMeta,
+    },
 ]
 
 export const protectedRoutes = [

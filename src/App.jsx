@@ -5,6 +5,8 @@ import { AuthProvider } from '@/auth'
 import Views from '@/views'
 import appConfig from './configs/app.config'
 import './locales'
+import PwaInstallPrompt from '@/components/pwa/PwaInstallPrompt'
+import PwaUpdatePrompt from '@/components/pwa/PwaUpdatePrompt'
 
 if (appConfig.enableMock) {
     import('./mock')
@@ -19,6 +21,8 @@ function App() {
                         <Views />
                     </Layout>
                 </AuthProvider>
+                <PwaInstallPrompt />
+                <PwaUpdatePrompt />
             </BrowserRouter>
         </Theme>
     )
