@@ -1,0 +1,5 @@
+name = "ecmc-react-app"
+compatibility_date = "2026-04-07"
+
+[assets]
+directory = "./dev-dist"

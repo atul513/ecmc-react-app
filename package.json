@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "npm start",
     "build": "vite build",
     "preview": "vite preview",
     "prettier": "npx prettier src --check",
