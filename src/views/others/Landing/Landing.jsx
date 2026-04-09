@@ -2,13 +2,15 @@ import NavigationBar from './components/NavigationBar'
 import LandingFooter from './components/LandingFooter'
 import useDarkMode from '@/utils/hooks/useDarkMode'
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '@/auth'
+import { apiGetPublicPlans } from '@/services/PlanService'
 import {
     TbPlayerPlay, TbArrowRight, TbCheck, TbStar,
     TbBrain, TbDeviceAnalytics, TbShieldCheck, TbClock,
     TbDeviceMobile, TbBook, TbTrophy, TbUsers,
-    TbQuote,
+    TbQuote, TbLoader,
 } from 'react-icons/tb'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -93,60 +95,21 @@ const testimonials = [
     },
 ]
 
-const pricingPlans = [
-    {
-        name: 'Free',
-        price: '0',
-        period: 'forever',
-        desc: 'Get started with basic quizzes',
-        features: [
-            'Access to free quizzes & practice sets',
-            'Instant result after submission',
-            'Basic performance report',
-            'Mobile responsive interface',
-            'Up to 3 attempts per quiz',
-        ],
-        cta: 'Start Free',
-        variant: 'default',
-        popular: false,
-    },
-    {
-        name: 'Pro',
-        price: '299',
-        period: '/month',
-        desc: 'For serious learners',
-        features: [
-            'Everything in Free',
-            'Unlimited quiz attempts',
-            'Detailed question-by-question reports',
-            'Subject & difficulty analytics',
-            'Practice sets with reward points',
-            'Download PDF reports',
-            'Ad-free experience',
-        ],
-        cta: 'Get Pro',
-        variant: 'solid',
-        popular: true,
-    },
-    {
-        name: 'Institute',
-        price: '1,999',
-        period: '/month',
-        desc: 'For schools & coaching centers',
-        features: [
-            'Everything in Pro',
-            'Bulk question import (Excel)',
-            'Create unlimited quizzes & exams',
-            'Section-based exam support (NEET/JEE)',
-            'Student management dashboard',
-            'Custom branding',
-            'Priority support',
-        ],
-        cta: 'Contact Sales',
-        variant: 'default',
-        popular: false,
-    },
-]
+const INSTITUTE_PLAN = {
+    name: 'Institute',
+    price: null,
+    desc: 'For schools & coaching centers',
+    features: [
+        'Bulk question import (Excel)',
+        'Create unlimited quizzes & exams',
+        'Section-based exam support (NEET/JEE)',
+        'Student management dashboard',
+        'Custom branding',
+        'Priority support',
+    ],
+    cta: 'Contact Sales',
+    isStatic: true,
+}
 
 const stats = [
     { value: '10K+', label: 'Students' },
@@ -163,6 +126,19 @@ const Landing = () => {
     const [isDark, setMode] = useDarkMode()
     const mode = isDark ? MODE_DARK : MODE_LIGHT
     const toggleMode = () => setMode(mode === MODE_LIGHT ? MODE_DARK : MODE_LIGHT)
+
+    const [apiPlans, setApiPlans] = useState([])
+    const [plansLoading, setPlansLoading] = useState(true)
+
+    useEffect(() => {
+        apiGetPublicPlans()
+            .then((res) => setApiPlans(res?.data || []))
+            .catch(() => {})
+            .finally(() => setPlansLoading(false))
+    }, [])
+
+    // Dynamic plans from API + static Institute plan at the end
+    const pricingPlans = [...apiPlans, INSTITUTE_PLAN]
 
     return (
         <main className="w-full text-base">
@@ -289,52 +265,87 @@ const Landing = () => {
                         Start free. Upgrade when you need more features.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {pricingPlans.map((plan) => (
-                        <div
-                            key={plan.name}
-                            className={`relative rounded-2xl p-6 border-2 transition-all ${
-                                plan.popular
-                                    ? 'border-primary shadow-xl shadow-primary/10 bg-white dark:bg-gray-800 scale-[1.02]'
-                                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50 hover:shadow-lg'
-                            }`}
-                        >
-                            {plan.popular && (
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full">
-                                    Most Popular
-                                </div>
-                            )}
-                            <div className="text-center mb-6">
-                                <h3 className="text-lg font-bold heading-text">{plan.name}</h3>
-                                <p className="text-xs text-gray-400 mt-1">{plan.desc}</p>
-                                <div className="mt-4">
-                                    <span className="text-4xl font-extrabold heading-text">{plan.price === '0' ? 'Free' : `₹${plan.price}`}</span>
-                                    {plan.price !== '0' && (
-                                        <span className="text-sm text-gray-400">{plan.period}</span>
+                {plansLoading ? (
+                    <div className="flex justify-center py-10">
+                        <TbLoader className="text-3xl text-primary animate-spin" />
+                    </div>
+                ) : (
+                    <div className={`grid grid-cols-1 gap-6 ${pricingPlans.length <= 2 ? 'md:grid-cols-2 max-w-2xl mx-auto' : 'md:grid-cols-3'}`}>
+                        {pricingPlans.map((plan, idx) => {
+                            const price = plan.isStatic ? null : Number(plan.price)
+                            const isFree = !plan.isStatic && price === 0
+                            const isPopular = !plan.isStatic && idx === 1 && apiPlans.length >= 2
+
+                            const handleClick = () => {
+                                if (plan.isStatic) return navigate('/contact')
+                                if (authenticated) return navigate(`/payment/${plan.id}`)
+                                if (isFree) return navigate('/sign-up')
+                                navigate(`/sign-in?redirectUrl=${encodeURIComponent(`/payment/${plan.id}`)}`)
+                            }
+
+                            const ctaLabel = plan.isStatic
+                                ? 'Contact Sales'
+                                : isFree
+                                    ? 'Start Free'
+                                    : authenticated ? 'Get Started' : 'Get Started'
+
+                            return (
+                                <div
+                                    key={plan.isStatic ? 'institute' : plan.id}
+                                    className={`relative rounded-2xl p-6 border-2 transition-all ${
+                                        isPopular
+                                            ? 'border-primary shadow-xl shadow-primary/10 bg-white dark:bg-gray-800 scale-[1.02]'
+                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50 hover:shadow-lg'
+                                    }`}
+                                >
+                                    {isPopular && (
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full">
+                                            Most Popular
+                                        </div>
                                     )}
+                                    <div className="text-center mb-6">
+                                        <h3 className="text-lg font-bold heading-text">{plan.name}</h3>
+                                        {plan.desc || plan.description ? (
+                                            <p className="text-xs text-gray-400 mt-1">{plan.desc || plan.description}</p>
+                                        ) : null}
+                                        <div className="mt-4">
+                                            {plan.isStatic ? (
+                                                <span className="text-2xl font-extrabold heading-text">Custom</span>
+                                            ) : (
+                                                <>
+                                                    <span className="text-4xl font-extrabold heading-text">
+                                                        {isFree ? 'Free' : `₹${Number(plan.price).toLocaleString()}`}
+                                                    </span>
+                                                    {!isFree && plan.duration_days && (
+                                                        <span className="text-sm text-gray-400 ml-1">/ {plan.duration_days}d</span>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <ul className="space-y-3 mb-8">
+                                        {(plan.features || []).map((f, i) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                                <TbCheck className="text-emerald-500 mt-0.5 shrink-0" />
+                                                <span>{f}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <button
+                                        onClick={handleClick}
+                                        className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
+                                            isPopular
+                                                ? 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/25'
+                                                : 'bg-gray-100 dark:bg-gray-700 heading-text hover:bg-gray-200 dark:hover:bg-gray-600'
+                                        }`}
+                                    >
+                                        {ctaLabel}
+                                    </button>
                                 </div>
-                            </div>
-                            <ul className="space-y-3 mb-8">
-                                {plan.features.map((f) => (
-                                    <li key={f} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                        <TbCheck className="text-emerald-500 mt-0.5 shrink-0" />
-                                        <span>{f}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <button
-                                onClick={() => navigate(plan.name === 'Institute' ? '/contact' : '/sign-up')}
-                                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
-                                    plan.popular
-                                        ? 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/25'
-                                        : 'bg-gray-100 dark:bg-gray-700 heading-text hover:bg-gray-200 dark:hover:bg-gray-600'
-                                }`}
-                            >
-                                {plan.cta}
-                            </button>
-                        </div>
-                    ))}
-                </div>
+                            )
+                        })}
+                    </div>
+                )}
             </section>
 
             {/* ── Testimonials ── */}

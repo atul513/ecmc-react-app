@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import Container from '@/components/shared/Container'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import Button from '@/components/ui/Button'
 import Spinner from '@/components/ui/Spinner'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import Table from '@/components/ui/Table'
-import { apiGetMySubscription, apiGetMySubscriptions } from '@/services/PlanService'
+import { apiGetMySubscription, apiGetMySubscriptions, apiCancelSubscription } from '@/services/PlanService'
 import {
     TbCheck, TbCalendar, TbCalendarOff, TbShieldCheck,
-    TbShieldX, TbClock,
+    TbShieldX, TbClock, TbBan,
 } from 'react-icons/tb'
 
 const { THead, TBody, Tr, Th, Td } = Table
@@ -120,25 +122,40 @@ const MySubscription = () => {
     const [current, setCurrent] = useState(null)
     const [history, setHistory] = useState([])
     const [loading, setLoading] = useState(true)
+    const [cancelling, setCancelling] = useState(false)
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
-    useEffect(() => {
-        const load = async () => {
-            setLoading(true)
-            try {
-                const [curRes, histRes] = await Promise.all([
-                    apiGetMySubscription().catch(() => null),
-                    apiGetMySubscriptions().catch(() => null),
-                ])
-                setCurrent(curRes?.data || null)
-                setHistory(histRes?.data || [])
-            } catch {
-                toast.push(<Notification type="danger" title="Failed to load subscription" />, { placement: 'top-center' })
-            } finally {
-                setLoading(false)
-            }
+    const load = async () => {
+        setLoading(true)
+        try {
+            const [curRes, histRes] = await Promise.all([
+                apiGetMySubscription().catch(() => null),
+                apiGetMySubscriptions().catch(() => null),
+            ])
+            setCurrent(curRes?.data || null)
+            setHistory(histRes?.data || [])
+        } catch {
+            toast.push(<Notification type="danger" title="Failed to load subscription" />, { placement: 'top-center' })
+        } finally {
+            setLoading(false)
         }
-        load()
-    }, [])
+    }
+
+    useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleCancel = async () => {
+        setShowCancelConfirm(false)
+        setCancelling(true)
+        try {
+            await apiCancelSubscription()
+            toast.push(<Notification type="success" title="Subscription cancelled" />, { placement: 'top-center' })
+            load()
+        } catch (err) {
+            toast.push(<Notification type="danger" title={err?.response?.data?.message || 'Cancel failed'} />, { placement: 'top-center' })
+        } finally {
+            setCancelling(false)
+        }
+    }
 
     if (loading) {
         return <div className="flex justify-center items-center py-20"><Spinner size="36px" /></div>
@@ -154,7 +171,23 @@ const MySubscription = () => {
 
                 {/* Current subscription */}
                 {current ? (
-                    <ActiveSubscriptionCard sub={current} />
+                    <div className="flex flex-col gap-3">
+                        <ActiveSubscriptionCard sub={current} />
+                        {(current.status === 'active' || current.status === 'pending') && (
+                            <div className="flex justify-end">
+                                <Button
+                                    size="sm"
+                                    variant="plain"
+                                    className="text-red-500 hover:text-red-600"
+                                    icon={<TbBan />}
+                                    loading={cancelling}
+                                    onClick={() => setShowCancelConfirm(true)}
+                                >
+                                    Cancel Subscription
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 ) : (
                     <AdaptiveCard>
                         <div className="text-center py-10">
@@ -199,6 +232,19 @@ const MySubscription = () => {
                     </div>
                 )}
             </div>
+
+            <ConfirmDialog
+                isOpen={showCancelConfirm}
+                type="danger"
+                title="Cancel subscription"
+                confirmButtonColor="red-600"
+                onClose={() => setShowCancelConfirm(false)}
+                onRequestClose={() => setShowCancelConfirm(false)}
+                onCancel={() => setShowCancelConfirm(false)}
+                onConfirm={handleCancel}
+            >
+                <p>Are you sure you want to cancel your subscription? You will lose access when the current period ends.</p>
+            </ConfirmDialog>
         </Container>
     )
 }

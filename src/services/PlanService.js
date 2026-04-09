@@ -15,6 +15,12 @@ export async function apiGetMySubscription() {
 export async function apiGetMySubscriptions() {
     return ApiService.fetchDataWithAxios({ url: '/my/subscriptions', method: 'get' })
 }
+export async function apiSubscribeToPlan(planId, data = {}) {
+    return ApiService.fetchDataWithAxios({ url: `/plans/${planId}/subscribe`, method: 'post', data })
+}
+export async function apiCancelSubscription() {
+    return ApiService.fetchDataWithAxios({ url: '/my/subscription/cancel', method: 'post' })
+}
 
 // ─── Admin · Plans ────────────────────────────────────────────────────────────
 export async function apiAdminGetPlans(params) {

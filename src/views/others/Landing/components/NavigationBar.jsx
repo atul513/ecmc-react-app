@@ -4,9 +4,10 @@ import Drawer from '@/components/ui/Drawer'
 import classNames from '@/utils/classNames'
 import useScrollTop from '@/utils/hooks/useScrollTop'
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
-import { TbMenu2 } from 'react-icons/tb'
+import { TbMenu2, TbLayoutDashboard } from 'react-icons/tb'
 import { Button } from '@/components/ui'
 import { useNavigate } from 'react-router'
+import { useAuth } from '@/auth'
 
 
 const navMenu = [
@@ -19,9 +20,20 @@ const navMenu = [
     { title: 'Contact', value: 'contact', href: '/contact' },
 ]
 
+const ROLE_DASHBOARD = {
+    superadmin: '/ecmc/superadmin/dashboard',
+    admin:      '/ecmc/admin/dashboard',
+    teacher:    '/ecmc/teacher/dashboard',
+    student:    '/ecmc/student/dashboard',
+    parent:     '/ecmc/parent/dashboard',
+}
+
 const Navigation = ({ toggleMode, mode }) => {
     const navigate = useNavigate()
+    const { authenticated, user } = useAuth()
     const { isSticky } = useScrollTop()
+
+    const dashboardPath = ROLE_DASHBOARD[user?.role ?? user?.authority?.[0]] ?? '/home'
 
     const [isOpen, setIsOpen] = useState(false)
 
@@ -133,21 +145,33 @@ const Navigation = ({ toggleMode, mode }) => {
                         </svg>
                         <span className="sr-only">Toggle theme</span>
                     </button>
-                    <Button
-                        size="sm"
-                        variant="plain"
-                        onClick={() => navigate('/sign-in')}
-                    >
-                        Sign In
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="solid"
-                        onClick={() => navigate('/sign-up')}
-                    >
-                        Sign Up
-                    </Button>
-
+                    {authenticated ? (
+                        <Button
+                            size="sm"
+                            variant="solid"
+                            icon={<TbLayoutDashboard />}
+                            onClick={() => navigate(dashboardPath)}
+                        >
+                            Dashboard
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                size="sm"
+                                variant="plain"
+                                onClick={() => navigate('/sign-in')}
+                            >
+                                Sign In
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="solid"
+                                onClick={() => navigate('/sign-up')}
+                            >
+                                Sign Up
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

@@ -35,11 +35,16 @@ const SignUpForm = (props) => {
     })
 
     const onSignUp = async (values) => {
-        const { userName, password, email } = values
+        const { userName, password, confirmPassword, email } = values
 
         if (!disableSubmit) {
             setSubmitting(true)
-            const result = await signUp({ userName, password, email })
+            const result = await signUp({
+                name: userName,
+                email,
+                password,
+                password_confirmation: confirmPassword,
+            })
 
             if (result?.status === 'failed') {
                 setMessage?.(result.message)

@@ -264,18 +264,27 @@ const MyQuizzes = () => {
                                             Attempts used: {quiz.attempts_used} / {quiz.max_attempts}
                                         </div>
                                     )}
-                                    <Button
-                                        variant="solid"
-                                        size="sm"
-                                        icon={<TbPlayerPlay />}
-                                        className="w-full"
-                                        disabled={quiz.access_type === 'paid' && !quiz.has_access}
-                                        onClick={() => handleOpenInstructions(quiz)}
-                                    >
-                                        {quiz.access_type === 'paid' && !quiz.has_access
-                                            ? 'Purchase to Access'
-                                            : `View & Start`}
-                                    </Button>
+                                    {quiz.access_type === 'paid' && !quiz.has_access ? (
+                                        <Button
+                                            variant="solid"
+                                            size="sm"
+                                            icon={<TbLock />}
+                                            className="w-full"
+                                            onClick={() => navigate('/pricing')}
+                                        >
+                                            Upgrade to Access
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="solid"
+                                            size="sm"
+                                            icon={<TbPlayerPlay />}
+                                            className="w-full"
+                                            onClick={() => handleOpenInstructions(quiz)}
+                                        >
+                                            View & Start
+                                        </Button>
+                                    )}
                                 </div>
                             </AdaptiveCard>
                         ))}

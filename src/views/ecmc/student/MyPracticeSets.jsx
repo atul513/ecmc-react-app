@@ -123,22 +123,27 @@ const MyPracticeSets = () => {
                                 )}
 
                                 <div className="mt-auto pt-2">
-                                    <Button
-                                        variant="solid"
-                                        size="sm"
-                                        icon={<TbPlayerPlay />}
-                                        className="w-full"
-                                        disabled={set.access_type === 'paid' && !set.has_access}
-                                        onClick={() =>
-                                            navigate(
-                                                `${ECMC_PREFIX_PATH}/student/practice/${set.id}`,
-                                            )
-                                        }
-                                    >
-                                        {set.access_type === 'paid' && !set.has_access
-                                            ? 'Purchase to Access'
-                                            : 'Start Practice'}
-                                    </Button>
+                                    {set.access_type === 'paid' && !set.has_access ? (
+                                        <Button
+                                            variant="solid"
+                                            size="sm"
+                                            icon={<TbLock />}
+                                            className="w-full"
+                                            onClick={() => navigate('/pricing')}
+                                        >
+                                            Upgrade to Access
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="solid"
+                                            size="sm"
+                                            icon={<TbPlayerPlay />}
+                                            className="w-full"
+                                            onClick={() => navigate(`${ECMC_PREFIX_PATH}/student/practice/${set.id}`)}
+                                        >
+                                            Start Practice
+                                        </Button>
+                                    )}
                                 </div>
                             </AdaptiveCard>
                         ))}

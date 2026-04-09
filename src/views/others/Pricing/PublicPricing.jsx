@@ -1,22 +1,91 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import NavigationBar from '@/views/others/Landing/components/NavigationBar'
-import LandingFooter from '@/views/others/Landing/components/LandingFooter'
 import LandingContainer from '@/views/others/Landing/components/LandingContainer'
 import useDarkMode from '@/utils/hooks/useDarkMode'
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
-import { apiGetPublicPlans } from '@/services/PlanService'
-import { TbCheck, TbCalendar, TbLoader, TbAlertCircle } from 'react-icons/tb'
+import { useAuth } from '@/auth'
+import { apiGetPublicPlans, apiSubscribeToPlan } from '@/services/PlanService'
+import {
+    TbCheck, TbCalendar, TbLoader, TbAlertCircle,
+    TbShieldCheck, TbClock,
+} from 'react-icons/tb'
+
+// ─── Plan CTA button ──────────────────────────────────────────────────────────
+
+const PlanCTA = ({ plan, authenticated, isHighlighted, onSubscribe, subscribing }) => {
+    const navigate = useNavigate()
+    const sub = plan.user_subscription
+
+    const btnBase = `w-full py-3.5 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center gap-2`
+    const primaryBtn = isHighlighted
+        ? `${btnBase} bg-white text-primary hover:bg-white/90 shadow-lg`
+        : `${btnBase} bg-primary text-white hover:bg-primary/90`
+    const disabledBtn = isHighlighted
+        ? `${btnBase} bg-white/30 text-white cursor-default`
+        : `${btnBase} bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-default`
+
+    if (!authenticated) {
+        const signInTarget = Number(plan.price) === 0
+            ? '/sign-in'
+            : `/sign-in?redirectUrl=${encodeURIComponent(`/payment/${plan.id}`)}`
+        return (
+            <button type="button" onClick={() => navigate(signInTarget)} className={primaryBtn}>
+                Get Started
+            </button>
+        )
+    }
+
+    if (sub?.status === 'active') {
+        return (
+            <div className={`${disabledBtn}`}>
+                <TbShieldCheck size={16} />
+                Active
+                {sub.days_remaining != null && (
+                    <span className="text-xs opacity-70">· {sub.days_remaining}d left</span>
+                )}
+            </div>
+        )
+    }
+
+    if (sub?.status === 'pending') {
+        return (
+            <div className={disabledBtn}>
+                <TbClock size={16} />
+                Pending Approval
+            </div>
+        )
+    }
+
+    return (
+        <button
+            type="button"
+            disabled={subscribing}
+            onClick={() => onSubscribe(plan)}
+            className={primaryBtn}
+        >
+            {subscribing ? <TbLoader className="animate-spin" size={16} /> : null}
+            {Number(plan.price) === 0 ? 'Activate Free Plan' : 'Get Started'}
+        </button>
+    )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const PublicPricing = () => {
     const [isDark, setMode] = useDarkMode()
     const mode = isDark ? MODE_DARK : MODE_LIGHT
     const toggleMode = () => setMode(mode === MODE_LIGHT ? MODE_DARK : MODE_LIGHT)
     const navigate = useNavigate()
+    const { authenticated } = useAuth()
 
     const [plans, setPlans] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
+    const [subscribingId, setSubscribingId] = useState(null)
+    const [successPlanId, setSuccessPlanId] = useState(null)
+
+    const year = new Date().getFullYear()
 
     useEffect(() => {
         apiGetPublicPlans()
@@ -25,7 +94,28 @@ const PublicPricing = () => {
             .finally(() => setLoading(false))
     }, [])
 
-    const year = new Date().getFullYear()
+    const handleSubscribe = async (plan) => {
+        if (Number(plan.price) === 0) {
+            // Free plan — subscribe immediately
+            setSubscribingId(plan.id)
+            try {
+                const res = await apiSubscribeToPlan(plan.id)
+                const subData = res?.data
+                setPlans((prev) => prev.map((p) =>
+                    p.id === plan.id ? { ...p, user_subscription: subData } : p
+                ))
+                setSuccessPlanId(plan.id)
+                setTimeout(() => setSuccessPlanId(null), 4000)
+            } catch (err) {
+                alert(err?.response?.data?.message || 'Subscription failed. Please try again.')
+            } finally {
+                setSubscribingId(null)
+            }
+        } else {
+            // Paid plan — redirect to payment page with plan data in state
+            navigate(`/payment/${plan.id}`, { state: { plan } })
+        }
+    }
 
     return (
         <div className="w-full min-h-screen flex flex-col bg-white dark:bg-gray-900">
@@ -73,8 +163,8 @@ const PublicPricing = () => {
                             ${plans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-3xl' : ''}
                             ${plans.length >= 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : ''}`}>
                             {plans.map((plan, idx) => {
-                                // Highlight the middle plan in a 3-plan layout
                                 const isHighlighted = plans.length === 3 && idx === 1
+                                const isSuccess = successPlanId === plan.id
 
                                 return (
                                     <div
@@ -90,6 +180,16 @@ const PublicPricing = () => {
                                                 <span className="bg-amber-400 text-amber-900 text-xs font-bold px-4 py-1.5 rounded-full shadow">
                                                     Most Popular
                                                 </span>
+                                            </div>
+                                        )}
+
+                                        {/* Success flash */}
+                                        {isSuccess && (
+                                            <div className="absolute inset-0 rounded-3xl flex items-center justify-center bg-emerald-500/95 z-10 pointer-events-none">
+                                                <div className="flex flex-col items-center gap-2 text-white">
+                                                    <TbShieldCheck className="text-5xl" />
+                                                    <p className="font-bold text-lg">Subscribed!</p>
+                                                </div>
                                             </div>
                                         )}
 
@@ -113,7 +213,7 @@ const PublicPricing = () => {
                                                         {plan.currency === 'INR' ? '₹' : (plan.currency || '')}
                                                     </span>
                                                     <span className={`text-5xl font-extrabold ${isHighlighted ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-                                                        {Number(plan.price).toLocaleString()}
+                                                        {Number(plan.price) === 0 ? 'Free' : Number(plan.price).toLocaleString()}
                                                     </span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 mt-1 text-sm ${isHighlighted ? 'text-white/70' : 'text-gray-400'}`}>
@@ -146,17 +246,20 @@ const PublicPricing = () => {
                                             </ul>
 
                                             {/* CTA */}
-                                            <button
-                                                type="button"
-                                                onClick={() => navigate('/sign-in')}
-                                                className={`w-full py-3.5 rounded-2xl font-semibold text-sm transition-all
-                                                    ${isHighlighted
-                                                        ? 'bg-white text-primary hover:bg-white/90 shadow-lg'
-                                                        : 'bg-primary text-white hover:bg-primary/90'
-                                                    }`}
-                                            >
-                                                Get Started
-                                            </button>
+                                            <PlanCTA
+                                                plan={plan}
+                                                authenticated={authenticated}
+                                                isHighlighted={isHighlighted}
+                                                onSubscribe={handleSubscribe}
+                                                subscribing={subscribingId === plan.id}
+                                            />
+
+                                            {/* Pending notice */}
+                                            {plan.user_subscription?.status === 'pending' && (
+                                                <p className={`text-xs text-center mt-2 ${isHighlighted ? 'text-white/60' : 'text-amber-600 dark:text-amber-400'}`}>
+                                                    Payment under review. We'll notify you once activated.
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )
@@ -188,6 +291,7 @@ const PublicPricing = () => {
                     </p>
                 </LandingContainer>
             </div>
+
         </div>
     )
 }
