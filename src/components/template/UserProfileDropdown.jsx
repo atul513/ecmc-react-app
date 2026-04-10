@@ -6,37 +6,34 @@ import { Link } from 'react-router'
 import {
     PiUserDuotone,
     PiGearDuotone,
-    PiPulseDuotone,
     PiSignOutDuotone,
 } from 'react-icons/pi'
 import { useAuth } from '@/auth'
-
-const dropdownItemList = [
-    {
-        label: 'Profile',
-        path: '/concepts/account/settings',
-        icon: <PiUserDuotone />,
-    },
-    {
-        label: 'Account Setting',
-        path: '/concepts/account/settings',
-        icon: <PiGearDuotone />,
-    },
-    {
-        label: 'Activity Log',
-        path: '/concepts/account/activity-log',
-        icon: <PiPulseDuotone />,
-    },
-]
+import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
+import { STUDENT } from '@/constants/roles.constant'
 
 const _UserDropdown = () => {
-    const { avatar, userName, email } = useSessionUser((state) => state.user)
-
+    const { avatar, userName, email, authority } = useSessionUser((state) => state.user)
     const { signOut } = useAuth()
 
-    const handleSignOut = () => {
-        signOut()
-    }
+    const isStudent = (authority || []).includes(STUDENT)
+
+    const profilePath = isStudent
+        ? `${ECMC_PREFIX_PATH}/student/dashboard`
+        : `${ECMC_PREFIX_PATH}/admin/dashboard`
+
+    const dropdownItems = [
+        {
+            label: 'My Profile',
+            path: profilePath,
+            icon: <PiUserDuotone />,
+        },
+        {
+            label: 'Settings',
+            path: profilePath,
+            icon: <PiGearDuotone />,
+        },
+    ]
 
     const avatarProps = {
         ...(avatar ? { src: avatar } : { icon: <PiUserDuotone /> }),
@@ -67,7 +64,7 @@ const _UserDropdown = () => {
                 </div>
             </Dropdown.Item>
             <Dropdown.Item variant="divider" />
-            {dropdownItemList.map((item) => (
+            {dropdownItems.map((item) => (
                 <Dropdown.Item
                     key={item.label}
                     eventKey={item.label}
@@ -85,7 +82,7 @@ const _UserDropdown = () => {
             <Dropdown.Item
                 eventKey="Sign Out"
                 className="gap-2"
-                onClick={handleSignOut}
+                onClick={() => signOut()}
             >
                 <span className="text-xl">
                     <PiSignOutDuotone />
