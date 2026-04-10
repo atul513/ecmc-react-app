@@ -107,3 +107,29 @@ export async function apiBulkUpdateCommentStatus(ids, status) {
 export async function apiDeleteComment(id) {
     return ApiService.fetchDataWithAxios({ url: `/admin/blog-comments/${id}`, method: 'delete' })
 }
+
+// ─── Public Blog ─────────────────────────────────────────────────────────────
+
+export async function apiGetPublicBlogs(params) {
+    return ApiService.fetchDataWithAxios({ url: '/v1/blogs', method: 'get', params })
+}
+
+export async function apiGetPublicBlog(slug) {
+    return ApiService.fetchDataWithAxios({ url: `/v1/blogs/${slug}`, method: 'get' })
+}
+
+export async function apiGetPublicBlogCategories() {
+    return ApiService.fetchDataWithAxios({ url: '/v1/blog-categories', method: 'get' })
+}
+
+export async function apiGetPublicBlogTags() {
+    return ApiService.fetchDataWithAxios({ url: '/v1/blog-tags', method: 'get' })
+}
+
+export async function apiGetBlogCommentsBySlug(slug, params) {
+    return ApiService.fetchDataWithAxios({ url: `/v1/blogs/${slug}/comments`, method: 'get', params })
+}
+
+export async function apiGetRelatedBlogs(slug) {
+    return ApiService.fetchDataWithAxios({ url: `/v1/blogs/${slug}/related`, method: 'get' })
+}

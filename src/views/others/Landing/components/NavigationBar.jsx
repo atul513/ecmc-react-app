@@ -16,6 +16,7 @@ const navMenu = [
     { title: 'Explore', value: 'home', href: '/home' },
     { title: 'Practice Sets', value: 'practice-sets', href: '/practice-sets' },
     { title: 'Exams', value: 'exams', href: '/exams' },
+    { title: 'Blog', value: 'blog', href: '/blogs' },
     { title: 'About Us', value: 'about', href: '/about' },
     { title: 'Contact', value: 'contact', href: '/contact' },
 ]

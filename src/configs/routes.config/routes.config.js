@@ -1,11 +1,6 @@
 import { lazy } from 'react'
-import dashboardsRoute from './dashboardsRoute'
-import conceptsRoute from './conceptsRoute'
 import uiComponentsRoute from './uiComponentsRoute'
 import authRoute from './authRoute'
-import authDemoRoute from './authDemoRoute'
-import guideRoute from './guideRoute'
-import othersRoute from './othersRoute'
 import ecmcRoute from './ecmcRoute'
 
 export const publicRoutes = [...authRoute]
@@ -102,14 +97,23 @@ export const openRoutes = [
         authority: [],
         meta: legalMeta,
     },
+    {
+        key: 'public-blogs',
+        path: `/blogs`,
+        component: lazy(() => import('@/views/others/Blog/PublicBlogList')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'public-blog-detail',
+        path: `/blogs/:slug`,
+        component: lazy(() => import('@/views/others/Blog/PublicBlogDetail')),
+        authority: [],
+        meta: legalMeta,
+    },
 ]
 
 export const protectedRoutes = [
     ...ecmcRoute,
-    ...dashboardsRoute,
-    ...conceptsRoute,
     ...uiComponentsRoute,
-    ...authDemoRoute,
-    ...guideRoute,
-    ...othersRoute,
 ]
