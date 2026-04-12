@@ -2,38 +2,17 @@ import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useSessionUser } from '@/store/authStore'
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 import {
     PiUserDuotone,
-    PiGearDuotone,
     PiSignOutDuotone,
 } from 'react-icons/pi'
 import { useAuth } from '@/auth'
-import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
-import { STUDENT } from '@/constants/roles.constant'
 
 const _UserDropdown = () => {
-    const { avatar, userName, email, authority } = useSessionUser((state) => state.user)
+    const { avatar, userName, email } = useSessionUser((state) => state.user)
     const { signOut } = useAuth()
-
-    const isStudent = (authority || []).includes(STUDENT)
-
-    const profilePath = isStudent
-        ? `${ECMC_PREFIX_PATH}/student/dashboard`
-        : `${ECMC_PREFIX_PATH}/admin/dashboard`
-
-    const dropdownItems = [
-        {
-            label: 'My Profile',
-            path: profilePath,
-            icon: <PiUserDuotone />,
-        },
-        {
-            label: 'Settings',
-            path: profilePath,
-            icon: <PiGearDuotone />,
-        },
-    ]
+    const navigate = useNavigate()
 
     const avatarProps = {
         ...(avatar ? { src: avatar } : { icon: <PiUserDuotone /> }),
@@ -64,20 +43,14 @@ const _UserDropdown = () => {
                 </div>
             </Dropdown.Item>
             <Dropdown.Item variant="divider" />
-            {dropdownItems.map((item) => (
-                <Dropdown.Item
-                    key={item.label}
-                    eventKey={item.label}
-                    className="px-0"
-                >
-                    <Link className="flex h-full w-full px-2" to={item.path}>
-                        <span className="flex gap-2 items-center w-full">
-                            <span className="text-xl">{item.icon}</span>
-                            <span>{item.label}</span>
-                        </span>
-                    </Link>
-                </Dropdown.Item>
-            ))}
+            <Dropdown.Item
+                eventKey="profile"
+                className="gap-2"
+                onClick={() => navigate('/account/profile')}
+            >
+                <span className="text-xl"><PiUserDuotone /></span>
+                <span>My Profile</span>
+            </Dropdown.Item>
             <Dropdown.Item variant="divider" />
             <Dropdown.Item
                 eventKey="Sign Out"

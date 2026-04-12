@@ -2,7 +2,7 @@ import LegalPageLayout from './LegalPageLayout'
 
 const TermsConditions = () => {
     return (
-        <LegalPageLayout title="Terms & Conditions" lastUpdated="March 24, 2026">
+        <LegalPageLayout title="Terms &amp; Conditions" description="Read the terms and conditions for using the ECMC online exam platform." canonical="/terms" lastUpdated="March 24, 2026">
             <section>
                 <h2 className="text-xl font-semibold heading-text">1. Acceptance of Terms</h2>
                 <p>

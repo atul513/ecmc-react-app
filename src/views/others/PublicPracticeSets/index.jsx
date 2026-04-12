@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import SEO from '@/components/shared/SEO'
 import NavigationBar from '@/views/others/Landing/components/NavigationBar'
 import LandingFooter from '@/views/others/Landing/components/LandingFooter'
 import useDarkMode from '@/utils/hooks/useDarkMode'
@@ -114,6 +115,11 @@ const PublicPracticeSets = () => {
 
     return (
         <main className="w-full text-base min-h-screen bg-gray-50 dark:bg-gray-900">
+            <SEO
+                title="Practice Sets — Free & Premium Online Practice"
+                description="Practise with curated question sets across subjects. Get instant feedback, earn reward points and track your progress on ECMC."
+                canonical="/practice-sets"
+            />
             <NavigationBar toggleMode={toggleMode} mode={mode} />
 
             <div className="max-w-7xl mx-auto px-4 pt-32 pb-20">

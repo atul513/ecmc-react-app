@@ -16,7 +16,7 @@ const team = [
 
 const AboutUs = () => {
     return (
-        <LegalPageLayout title="About Us">
+        <LegalPageLayout title="About Us" description="Learn about ECMC — the smart online exam and practice platform built for students, teachers and institutions." canonical="/about">
             <p className="text-lg">
                 ECMC is a modern school management platform built to simplify
                 administration, empower teachers, and keep students and parents

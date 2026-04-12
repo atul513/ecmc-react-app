@@ -91,7 +91,7 @@ const FAQItem = ({ q, a }) => {
 
 const FAQ = () => {
     return (
-        <LegalPageLayout title="FAQ / Help Center">
+        <LegalPageLayout title="FAQ — Frequently Asked Questions" description="Find answers to the most common questions about ECMC exams, practice sets, subscriptions and accounts." canonical="/faq">
             <p>
                 Find answers to the most common questions about ECMC. Can't find what
                 you're looking for?{' '}

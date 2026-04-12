@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '@/auth'
 import { apiGetPublicPlans } from '@/services/PlanService'
+import SEO from '@/components/shared/SEO'
 import {
     TbPlayerPlay, TbArrowRight, TbCheck, TbStar,
     TbBrain, TbDeviceAnalytics, TbShieldCheck, TbClock,
@@ -140,8 +141,25 @@ const Landing = () => {
     // Dynamic plans from API + static Institute plan at the end
     const pricingPlans = [...apiPlans, INSTITUTE_PLAN]
 
+    const landingSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'ECMC',
+        url: 'https://test.store4robo.com',
+        description: 'Smart platform for online exams, quizzes and practice sets for students and educators.',
+        potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://test.store4robo.com/exams?q={search_term_string}',
+            'query-input': 'required name=search_term_string',
+        },
+    }
+
     return (
         <main className="w-full text-base">
+            <SEO
+                canonical="/landing"
+                schema={landingSchema}
+            />
             <NavigationBar toggleMode={toggleMode} mode={mode} />
 
             {/* ── Hero ── */}

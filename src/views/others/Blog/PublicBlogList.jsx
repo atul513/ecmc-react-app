@@ -3,8 +3,12 @@ import { Link, useSearchParams } from 'react-router'
 import Spinner from '@/components/ui/Spinner'
 import Input from '@/components/ui/Input'
 import Pagination from '@/components/ui/Pagination'
+import NavigationBar from '@/views/others/Landing/components/NavigationBar'
+import LandingFooter from '@/views/others/Landing/components/LandingFooter'
+import useDarkMode from '@/utils/hooks/useDarkMode'
+import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 import { apiGetPublicBlogs, apiGetPublicBlogCategories } from '@/services/BlogService'
-import { TbSearch, TbCalendar, TbUser, TbArrowRight, TbClock } from 'react-icons/tb'
+import { TbSearch, TbCalendar, TbUser, TbClock } from 'react-icons/tb'
 
 const stripHtml = (html) => (html || '').replace(/<[^>]+>/g, '').trim()
 
@@ -80,6 +84,10 @@ const BlogCard = ({ post }) => {
 }
 
 const PublicBlogList = () => {
+    const [isDark, setMode] = useDarkMode()
+    const mode = isDark ? MODE_DARK : MODE_LIGHT
+    const toggleMode = () => setMode(mode === MODE_LIGHT ? MODE_DARK : MODE_LIGHT)
+
     const [searchParams, setSearchParams] = useSearchParams()
     const [posts, setPosts] = useState([])
     const [categories, setCategories] = useState([])
@@ -118,9 +126,10 @@ const PublicBlogList = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <main className="w-full text-base min-h-screen bg-gray-50 dark:bg-gray-900">
+            <NavigationBar toggleMode={toggleMode} mode={mode} />
             {/* Header */}
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 pt-24">
                 <div className="max-w-6xl mx-auto px-4 py-10 md:py-16 text-center">
                     <h1 className="text-3xl md:text-4xl font-extrabold heading-text mb-3">Blog</h1>
                     <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto mb-8">
@@ -200,13 +209,8 @@ const PublicBlogList = () => {
                 )}
             </div>
 
-            {/* Footer back link */}
-            <div className="text-center py-8">
-                <Link to="/landing" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
-                    <TbArrowRight className="rotate-180" /> Back to Home
-                </Link>
-            </div>
-        </div>
+            <LandingFooter mode={mode} />
+        </main>
     )
 }
 

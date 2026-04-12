@@ -133,3 +133,11 @@ export async function apiGetBlogCommentsBySlug(slug, params) {
 export async function apiGetRelatedBlogs(slug) {
     return ApiService.fetchDataWithAxios({ url: `/v1/blogs/${slug}/related`, method: 'get' })
 }
+
+export async function apiPostBlogComment(slug, data) {
+    return ApiService.fetchDataWithAxios({ url: `/v1/blogs/${slug}/comments`, method: 'post', data })
+}
+
+export async function apiGetBlogComment(id) {
+    return ApiService.fetchDataWithAxios({ url: `/admin/blog-comments/${id}`, method: 'get' })
+}

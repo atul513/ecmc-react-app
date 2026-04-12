@@ -47,6 +47,15 @@ export async function apiGetQuizQuestions(id) {
 export async function apiGetQuizSchedules(id) {
     return ApiService.fetchDataWithAxios({ url: `${BASE}/quizzes/${id}/schedules`, method: 'get' })
 }
+export async function apiDuplicateQuiz(id) {
+    return ApiService.fetchDataWithAxios({ url: `${BASE}/quizzes/${id}/duplicate`, method: 'post' })
+}
+export async function apiSyncQuizQuestions(id, questions) {
+    return ApiService.fetchDataWithAxios({ url: `${BASE}/quizzes/${id}/questions/sync`, method: 'post', data: { questions } })
+}
+export async function apiSyncQuizSchedules(id, schedules) {
+    return ApiService.fetchDataWithAxios({ url: `${BASE}/quizzes/${id}/schedules/sync`, method: 'post', data: { schedules } })
+}
 export async function apiGetQuizLeaderboard(id) {
     return ApiService.fetchDataWithAxios({ url: `${BASE}/quizzes/${id}/leaderboard`, method: 'get' })
 }

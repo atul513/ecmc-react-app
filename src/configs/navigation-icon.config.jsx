@@ -1,4 +1,10 @@
 import {
+    TbBriefcase, TbClipboardCheck, TbList, TbFolder, TbPencil,
+    TbBook, TbChartBar, TbTag as TbTagIcon, TbUpload, TbCreditCard,
+    TbEdit, TbMessageCircle, TbShield, TbBuilding, TbSchool,
+    TbUsers, TbSitemap,
+} from 'react-icons/tb'
+import {
     PiPuzzlePieceDuotone,
     PiSwatchesDuotone,
     PiChatDotsDuotone,
@@ -195,6 +201,25 @@ const navigationIcon = {
     sharedComponentDoc: <PiShareNetworkDuotone />,
     utilsDoc: <PiToolboxDuotone />,
     changeLog: <PiCodeDuotone />,
+    // ─── ECMC ─────────────────────────────────────────────────────
+    briefcase: <TbBriefcase />,
+    clipboardCheck: <TbClipboardCheck />,
+    docList: <TbList />,
+    folder: <TbFolder />,
+    pencil: <TbPencil />,
+    bookOpen: <TbBook />,
+    chartBar: <TbChartBar />,
+    tag: <TbTagIcon />,
+    upload: <TbUpload />,
+    creditCard: <TbCreditCard />,
+    edit: <TbEdit />,
+    chat: <TbMessageCircle />,
+    shield: <TbShield />,
+    building: <TbBuilding />,
+    graduationCap: <TbSchool />,
+    users: <TbUsers />,
+    sitemap: <TbSitemap />,
+    list: <TbList />,
 }
 
 export default navigationIcon

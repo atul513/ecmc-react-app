@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import SEO from '@/components/shared/SEO'
 import NavigationBar from '@/views/others/Landing/components/NavigationBar'
 import LandingFooter from '@/views/others/Landing/components/LandingFooter'
 import useDarkMode from '@/utils/hooks/useDarkMode'
@@ -7,7 +8,7 @@ import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 import { apiGetHome } from '@/services/HomeService'
 import {
     TbBook, TbClipboardList, TbClock, TbLoader, TbAlertCircle,
-    TbArrowRight, TbLock, TbStar, TbChevronRight,
+    TbLock, TbStar, TbChevronRight,
 } from 'react-icons/tb'
 
 const AccessBadge = ({ type }) =>
@@ -151,6 +152,11 @@ const PublicHome = () => {
 
     return (
         <main className="w-full text-base min-h-screen bg-gray-50 dark:bg-gray-900">
+            <SEO
+                title="Explore Exams & Practice Sets"
+                description="Browse free and premium online exams, quizzes and practice sets. Start practising today on ECMC."
+                canonical="/home"
+            />
             <NavigationBar toggleMode={toggleMode} mode={mode} />
 
             <div className="max-w-7xl mx-auto px-4 pt-32 pb-20">

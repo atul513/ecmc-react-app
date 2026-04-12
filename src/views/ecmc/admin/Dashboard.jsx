@@ -165,8 +165,13 @@ const AdminDashboard = () => {
         )
     }
 
-    const stats = data ?? {}
-    const recentActivity = stats.recent_activity ?? []
+    const d = data ?? {}
+    const userStats    = d.user_stats       ?? {}
+    const contentStats = d.content_stats    ?? {}
+    const attemptStats = d.attempt_stats    ?? {}
+    const subStats     = d.subscription_stats ?? {}
+    const recentUsers  = d.recent_users     ?? []
+    const recentImports = d.recent_imports  ?? []
 
     return (
         <div className="space-y-8">
@@ -180,48 +185,94 @@ const AdminDashboard = () => {
             {/* Welcome */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    School Admin Dashboard 🏫
+                    Admin Dashboard
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                    Welcome, {user?.firstName || user?.name || 'Admin'}. Here's your school overview.
+                    Welcome, {user?.userName || user?.name || 'Admin'}. Here's your platform overview.
                 </p>
             </div>
 
-            {/* Stats */}
+            {/* Top stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard icon={TbUsers} label="Total Users" value={stats.total_users} sub={`${stats.total_students ?? 0} students`} color="text-indigo-600" bg="bg-indigo-50 dark:bg-indigo-900/20" />
-                <StatCard icon={TbClipboardCheck} label="Total Quizzes" value={stats.total_quizzes} color="text-violet-600" bg="bg-violet-50 dark:bg-violet-900/20" />
-                <StatCard icon={TbChartBar} label="Total Attempts" value={stats.total_attempts} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
-                <StatCard icon={TbCreditCard} label="Active Subscriptions" value={stats.active_subscriptions} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
+                <StatCard
+                    icon={TbUsers} label="Total Users" color="text-indigo-600" bg="bg-indigo-50 dark:bg-indigo-900/20"
+                    value={userStats.total}
+                    sub={`${userStats.students ?? 0} students · ${userStats.teachers ?? 0} teachers`}
+                />
+                <StatCard
+                    icon={TbClipboardCheck} label="Total Quizzes" color="text-violet-600" bg="bg-violet-50 dark:bg-violet-900/20"
+                    value={contentStats.quizzes}
+                    sub={`${contentStats.published ?? 0} published`}
+                />
+                <StatCard
+                    icon={TbChartBar} label="Total Attempts" color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20"
+                    value={attemptStats.total}
+                    sub={`${attemptStats.this_month ?? 0} this month`}
+                />
+                <StatCard
+                    icon={TbCreditCard} label="Active Subscriptions" color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20"
+                    value={subStats.active}
+                    sub={`₹${(subStats.revenue_this_month ?? 0).toLocaleString()} this month`}
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Content stats */}
+                {/* Content overview */}
                 <div>
                     <SectionTitle title="Content Overview" />
                     <div className="grid grid-cols-2 gap-3">
-                        <StatCard icon={TbPencil} label="Practice Sets" value={stats.total_practice_sets} color="text-orange-600" bg="bg-orange-50 dark:bg-orange-900/20" />
-                        <StatCard icon={TbChartBar} label="Questions" value={stats.total_questions} color="text-teal-600" bg="bg-teal-50 dark:bg-teal-900/20" />
+                        <StatCard icon={TbPencil} label="Questions" value={contentStats.questions} color="text-teal-600" bg="bg-teal-50 dark:bg-teal-900/20" />
+                        <StatCard icon={TbChartBar} label="Practice Sets" value={contentStats.practice_sets} color="text-orange-600" bg="bg-orange-50 dark:bg-orange-900/20" />
+                        <StatCard icon={TbUsers} label="New Users (Month)" value={userStats.new_this_month} color="text-pink-600" bg="bg-pink-50 dark:bg-pink-900/20" />
+                        <StatCard icon={TbClipboardCheck} label="Draft Quizzes" value={contentStats.draft} color="text-gray-500" bg="bg-gray-100 dark:bg-gray-700" />
                     </div>
                 </div>
 
-                {/* Recent Activity */}
-                {recentActivity.length > 0 && (
+                {/* Recent imports */}
+                {recentImports.length > 0 && (
                     <div>
-                        <SectionTitle title="Recent Activity" />
+                        <SectionTitle title="Recent Imports" />
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
-                            {recentActivity.slice(0, 6).map((a, i) => (
-                                <div key={i} className="px-5 py-3 flex items-center justify-between text-sm">
-                                    <span className="text-gray-700 dark:text-gray-300">{a.description ?? a.message ?? JSON.stringify(a)}</span>
-                                    <span className="text-gray-400 text-xs whitespace-nowrap ml-4">
-                                        {a.created_at ? new Date(a.created_at).toLocaleDateString() : ''}
-                                    </span>
+                            {recentImports.slice(0, 5).map((imp) => (
+                                <div key={imp.id} className="px-5 py-3 flex items-center justify-between text-sm gap-3">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-gray-700 dark:text-gray-300 truncate">{imp.file_name}</div>
+                                        <div className="text-xs text-gray-400 mt-0.5">{imp.importer?.name} · {imp.created_at ? new Date(imp.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''}</div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-xs text-gray-500">{imp.success_count}/{imp.total_rows}</span>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${imp.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                                            {imp.status}
+                                        </span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
             </div>
+
+            {/* Recent users strip */}
+            {recentUsers.length > 0 && (
+                <div>
+                    <SectionTitle title="Recent Registrations" />
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+                        {recentUsers.map((u) => (
+                            <div key={u.id} className="px-5 py-3 flex items-center justify-between text-sm">
+                                <div>
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{u.name}</span>
+                                    <span className="text-gray-400 ml-2">{u.email}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <RoleBadge role={u.role} />
+                                    <span className="text-xs text-gray-400">{u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
 
             {/* Users Table */}
             <div>

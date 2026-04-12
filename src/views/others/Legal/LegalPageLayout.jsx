@@ -2,8 +2,9 @@ import NavigationBar from '@/views/others/Landing/components/NavigationBar'
 import Container from '@/views/others/Landing/components/LandingContainer'
 import useDarkMode from '@/utils/hooks/useDarkMode'
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
+import SEO from '@/components/shared/SEO'
 
-const LegalPageLayout = ({ title, lastUpdated, children }) => {
+const LegalPageLayout = ({ title, description, canonical, lastUpdated, children }) => {
     const [isDark, setMode] = useDarkMode()
     const mode = isDark ? MODE_DARK : MODE_LIGHT
 
@@ -14,6 +15,7 @@ const LegalPageLayout = ({ title, lastUpdated, children }) => {
 
     return (
         <div className="w-full min-h-screen flex flex-col">
+            <SEO title={title} description={description} canonical={canonical} />
             <NavigationBar toggleMode={toggleMode} mode={mode} />
             <div className="flex-1 pt-28 pb-16">
                 <Container>

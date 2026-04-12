@@ -96,6 +96,14 @@ const ecmcRoute = [
         authority: [ADMIN, SUPERADMIN],
         meta: { pageContainerType: 'contained' },
     },
+    // ─── EXAM SECTIONS (Admin + SuperAdmin) ──────────────────────
+    {
+        key: 'ecmc.exam-sections',
+        path: `${ECMC_PREFIX_PATH}/exam-sections`,
+        component: lazy(() => import('@/views/ecmc/exam-sections/ExamSectionList')),
+        authority: [ADMIN, SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
     // ─── STUDENT PRACTICE SET ROUTES ─────────────────────────────
     {
         key: 'ecmc.student.mypracticesets',

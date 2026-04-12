@@ -2,7 +2,7 @@ import LegalPageLayout from './LegalPageLayout'
 
 const CookiePolicy = () => {
     return (
-        <LegalPageLayout title="Cookie Policy" lastUpdated="March 24, 2026">
+        <LegalPageLayout title="Cookie Policy" description="Read how ECMC uses cookies to improve your experience." canonical="/cookie-policy" lastUpdated="March 24, 2026">
             <p>
                 This Cookie Policy explains how ECMC uses cookies and similar tracking
                 technologies when you use our Platform.

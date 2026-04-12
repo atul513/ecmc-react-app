@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import uiComponentsRoute from './uiComponentsRoute'
 import authRoute from './authRoute'
 import ecmcRoute from './ecmcRoute'
+import othersRoute from './othersRoute'
 
 export const publicRoutes = [...authRoute]
 
@@ -116,4 +117,5 @@ export const openRoutes = [
 export const protectedRoutes = [
     ...ecmcRoute,
     ...uiComponentsRoute,
+    ...othersRoute,
 ]

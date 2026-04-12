@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /landing
+Allow: /home
+Allow: /exams
+Allow: /practice-sets
+Allow: /pricing
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /terms
+Allow: /privacy
+Allow: /cookie-policy
+Allow: /refund-policy
+Allow: /blogs
+Disallow: /ecmc/
+Disallow: /dashboards/
+Disallow: /account/
+Disallow: /payment/
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /access-denied
+
+Sitemap: https://test.store4robo.com/sitemap.xml

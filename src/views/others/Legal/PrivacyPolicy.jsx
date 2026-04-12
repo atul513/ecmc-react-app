@@ -2,7 +2,7 @@ import LegalPageLayout from './LegalPageLayout'
 
 const PrivacyPolicy = () => {
     return (
-        <LegalPageLayout title="Privacy Policy" lastUpdated="March 24, 2026">
+        <LegalPageLayout title="Privacy Policy" description="Understand how ECMC collects, uses and protects your personal data." canonical="/privacy" lastUpdated="March 24, 2026">
             <p>
                 ECMC is committed to protecting your personal data. This Privacy Policy
                 explains how we collect, use, and safeguard your information in accordance

@@ -62,6 +62,16 @@ const ecmcNavigationConfig = [
                         authority: [ADMIN, SUPERADMIN],
                         subMenu: [],
                     },
+                    {
+                        key: 'ecmc.exam-sections',
+                        path: `${ECMC_PREFIX_PATH}/exam-sections`,
+                        title: 'Exam Sections',
+                        translateKey: 'nav.ecmc.exam-sections',
+                        icon: 'sitemap',
+                        type: NAV_ITEM_TYPE_ITEM,
+                        authority: [ADMIN, SUPERADMIN],
+                        subMenu: [],
+                    },
                 ],
             },
             {

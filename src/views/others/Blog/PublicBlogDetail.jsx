@@ -1,22 +1,35 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router'
 import Spinner from '@/components/ui/Spinner'
-import { apiGetPublicBlog, apiGetRelatedBlogs, apiGetBlogCommentsBySlug } from '@/services/BlogService'
+import NavigationBar from '@/views/others/Landing/components/NavigationBar'
+import LandingFooter from '@/views/others/Landing/components/LandingFooter'
+import useDarkMode from '@/utils/hooks/useDarkMode'
+import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
+import { apiGetPublicBlog, apiGetRelatedBlogs, apiGetBlogCommentsBySlug, apiPostBlogComment } from '@/services/BlogService'
 import {
     TbCalendar, TbClock, TbArrowLeft, TbTag,
     TbBrandFacebook, TbBrandTwitter, TbBrandLinkedin, TbLink,
-    TbMessage,
+    TbMessage, TbSend, TbCheck,
 } from 'react-icons/tb'
 
 const stripHtml = (html) => (html || '').replace(/<[^>]+>/g, '').trim()
 
 const PublicBlogDetail = () => {
+    const [isDark, setMode] = useDarkMode()
+    const mode = isDark ? MODE_DARK : MODE_LIGHT
+    const toggleMode = () => setMode(mode === MODE_LIGHT ? MODE_DARK : MODE_LIGHT)
+
     const { slug } = useParams()
     const [post, setPost] = useState(null)
     const [related, setRelated] = useState([])
     const [comments, setComments] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
+
+    const [commentForm, setCommentForm] = useState({ author_name: '', email: '', content: '' })
+    const [commentSubmitting, setCommentSubmitting] = useState(false)
+    const [commentSuccess, setCommentSuccess] = useState(false)
+    const [commentError, setCommentError] = useState('')
 
     useEffect(() => {
         setLoading(true)
@@ -33,25 +46,53 @@ const PublicBlogDetail = () => {
             .finally(() => setLoading(false))
     }, [slug])
 
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault()
+        setCommentError('')
+        if (!commentForm.author_name.trim() || !commentForm.email.trim() || !commentForm.content.trim()) {
+            setCommentError('All fields are required.')
+            return
+        }
+        setCommentSubmitting(true)
+        try {
+            await apiPostBlogComment(slug, commentForm)
+            setCommentSuccess(true)
+            setCommentForm({ author_name: '', email: '', content: '' })
+        } catch (err) {
+            const msg = err?.response?.data?.message ||
+                Object.values(err?.response?.data?.errors || {}).flat().join(' ') ||
+                'Failed to submit comment. Please try again.'
+            setCommentError(msg)
+        } finally {
+            setCommentSubmitting(false)
+        }
+    }
+
     const copyLink = () => {
         navigator.clipboard.writeText(window.location.href)
     }
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Spinner size="40px" />
-            </div>
+            <main className="w-full min-h-screen bg-white dark:bg-gray-900">
+                <NavigationBar toggleMode={toggleMode} mode={mode} />
+                <div className="flex items-center justify-center pt-40">
+                    <Spinner size="40px" />
+                </div>
+            </main>
         )
     }
 
     if (error || !post) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
-                <h2 className="text-2xl font-bold heading-text">Article Not Found</h2>
-                <p className="text-gray-400">The article you're looking for doesn't exist or has been removed.</p>
-                <Link to="/blogs" className="text-primary hover:underline text-sm">Browse all articles</Link>
-            </div>
+            <main className="w-full min-h-screen bg-white dark:bg-gray-900">
+                <NavigationBar toggleMode={toggleMode} mode={mode} />
+                <div className="flex flex-col items-center justify-center pt-40 gap-4 px-4">
+                    <h2 className="text-2xl font-bold heading-text">Article Not Found</h2>
+                    <p className="text-gray-400">The article you're looking for doesn't exist or has been removed.</p>
+                    <Link to="/blogs" className="text-primary hover:underline text-sm">Browse all articles</Link>
+                </div>
+            </main>
         )
     }
 
@@ -63,9 +104,10 @@ const PublicBlogDetail = () => {
     const pageTitle = encodeURIComponent(post.title || '')
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <main className="w-full text-base min-h-screen bg-white dark:bg-gray-900">
+            <NavigationBar toggleMode={toggleMode} mode={mode} />
             {/* Hero / Header */}
-            <div className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 pt-24">
                 <div className="max-w-3xl mx-auto px-4 py-8 md:py-14">
                     {/* Back */}
                     <Link
@@ -222,6 +264,77 @@ const PublicBlogDetail = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Leave a Comment form */}
+                <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="font-bold heading-text text-lg mb-5 flex items-center gap-2">
+                        <TbMessage className="text-primary" /> Leave a Comment
+                    </h3>
+                    {commentSuccess ? (
+                        <div className="flex flex-col items-center justify-center py-8 gap-3 text-emerald-600 dark:text-emerald-400">
+                            <TbCheck className="text-4xl" />
+                            <p className="font-semibold">Comment submitted! It will appear after review.</p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleCommentSubmit} className="flex flex-col gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                                        placeholder="Your name"
+                                        value={commentForm.author_name}
+                                        onChange={(e) => setCommentForm((f) => ({ ...f, author_name: e.target.value }))}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Email <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="email"
+                                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                                        placeholder="your@email.com"
+                                        value={commentForm.email}
+                                        onChange={(e) => setCommentForm((f) => ({ ...f, email: e.target.value }))}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Comment <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors resize-none"
+                                    rows={4}
+                                    placeholder="Share your thoughts..."
+                                    value={commentForm.content}
+                                    onChange={(e) => setCommentForm((f) => ({ ...f, content: e.target.value }))}
+                                />
+                            </div>
+                            {commentError && (
+                                <p className="text-sm text-red-500">{commentError}</p>
+                            )}
+                            <div>
+                                <button
+                                    type="submit"
+                                    disabled={commentSubmitting}
+                                    className="inline-flex items-center gap-2 bg-primary text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-all disabled:opacity-60 text-sm"
+                                >
+                                    {commentSubmitting ? (
+                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <TbSend size={16} />
+                                    )}
+                                    Submit Comment
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
             </div>
 
             {/* Related posts */}
@@ -264,13 +377,8 @@ const PublicBlogDetail = () => {
                 </div>
             )}
 
-            {/* Bottom navigation */}
-            <div className="max-w-3xl mx-auto px-4 pb-10 text-center">
-                <Link to="/blogs" className="text-primary hover:underline text-sm inline-flex items-center gap-1.5">
-                    <TbArrowLeft /> Back to All Articles
-                </Link>
-            </div>
-        </div>
+            <LandingFooter mode={mode} />
+        </main>
     )
 }
 

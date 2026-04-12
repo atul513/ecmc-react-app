@@ -68,7 +68,7 @@ const ContactUs = () => {
     }
 
     return (
-        <LegalPageLayout title="Contact Us">
+        <LegalPageLayout title="Contact Us" description="Get in touch with the ECMC team for support, sales enquiries or feedback." canonical="/contact">
             <p>
                 Have a question, issue, or feedback? Our team is here to help. Reach
                 out through any of the channels below.

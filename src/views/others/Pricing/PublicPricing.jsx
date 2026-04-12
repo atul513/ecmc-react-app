@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import SEO from '@/components/shared/SEO'
 import NavigationBar from '@/views/others/Landing/components/NavigationBar'
 import LandingContainer from '@/views/others/Landing/components/LandingContainer'
 import useDarkMode from '@/utils/hooks/useDarkMode'
@@ -119,6 +120,11 @@ const PublicPricing = () => {
 
     return (
         <div className="w-full min-h-screen flex flex-col bg-white dark:bg-gray-900">
+            <SEO
+                title="Pricing Plans"
+                description="Choose the right ECMC plan for you. Free, Pro and Institute plans available for students and schools."
+                canonical="/pricing"
+            />
             <NavigationBar toggleMode={toggleMode} mode={mode} />
 
             <main className="flex-1 pt-28 pb-20">

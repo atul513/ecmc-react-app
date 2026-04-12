@@ -2,7 +2,7 @@ import LegalPageLayout from './LegalPageLayout'
 
 const RefundPolicy = () => {
     return (
-        <LegalPageLayout title="Refund Policy" lastUpdated="March 24, 2026">
+        <LegalPageLayout title="Refund Policy" description="Read our refund and cancellation policy for ECMC subscriptions and plans." canonical="/refund-policy" lastUpdated="March 24, 2026">
             <p>
                 This Refund Policy outlines the conditions under which ECMC processes
                 refunds for subscription plans and paid services.
