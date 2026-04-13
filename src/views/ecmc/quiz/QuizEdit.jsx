@@ -8,12 +8,14 @@ import toast from '@/components/ui/toast'
 import { apiGetQuiz, apiUpdateQuiz, apiGetQuizQuestions, apiGetQuizSchedules } from '@/services/QuizService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
 import QuizForm from './QuizForm'
+import LinkedSections from '@/components/shared/LinkedSections'
 
 const QuizEdit = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
     const [initialData, setInitialData] = useState(null)
+    const [linkedSections, setLinkedSections] = useState([])
     const [submitting, setSubmitting] = useState(false)
     const [serverErrors, setServerErrors] = useState(null)
 
@@ -30,6 +32,9 @@ const QuizEdit = () => {
                 const schedules = schedulesRes?.data || []
                 // sections come from quiz detail response
                 const rawSections = quiz?.sections || []
+
+                // exam sections this quiz is linked to
+                setLinkedSections(quiz?.exam_sections || [])
 
                 setInitialData({
                     ...quiz,
@@ -96,12 +101,20 @@ const QuizEdit = () => {
 
     return (
         <Container>
-            <AdaptiveCard>
-                <h3 className="text-lg font-semibold mb-6">Edit Quiz / Exam</h3>
-                <div className="max-w-4xl mx-auto px-0 lg:px-8">
-                    <QuizForm initialData={initialData} onSubmit={handleSubmit} submitting={submitting} serverErrors={serverErrors} />
-                </div>
-            </AdaptiveCard>
+            <div className="flex flex-col gap-6">
+                <AdaptiveCard>
+                    <h3 className="text-lg font-semibold mb-6">Edit Quiz / Exam</h3>
+                    <div className="max-w-4xl mx-auto px-0 lg:px-8">
+                        <QuizForm initialData={initialData} onSubmit={handleSubmit} submitting={submitting} serverErrors={serverErrors} />
+                    </div>
+                </AdaptiveCard>
+
+                <LinkedSections
+                    contentId={Number(id)}
+                    linkableType="quiz"
+                    initialSections={linkedSections}
+                />
+            </div>
         </Container>
     )
 }
