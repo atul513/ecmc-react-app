@@ -99,6 +99,20 @@ export const openRoutes = [
         meta: legalMeta,
     },
     {
+        key: 'public-explore',
+        path: `/explore`,
+        component: lazy(() => import('@/views/others/Explore/ExploreCategories')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'public-explore-category',
+        path: `/explore/:slug`,
+        component: lazy(() => import('@/views/others/Explore/ExploreCategoryDetail')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
         key: 'public-blogs',
         path: `/blogs`,
         component: lazy(() => import('@/views/others/Blog/PublicBlogList')),

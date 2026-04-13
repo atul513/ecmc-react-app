@@ -12,7 +12,16 @@ const Layout = ({ children }) => {
     const { authenticated } = useAuth()
     const location = useLocation()
 
-    const isOpenRoute = openRoutes.some((r) => r.path === location.pathname)
+    const isOpenRoute = openRoutes.some((r) => {
+        // Exact match
+        if (r.path === location.pathname) return true
+        // Dynamic route match: /explore/:slug -> /explore/*
+        if (r.path.includes(':')) {
+            const pattern = r.path.replace(/:[^/]+/g, '[^/]+')
+            return new RegExp(`^${pattern}$`).test(location.pathname)
+        }
+        return false
+    })
 
     return (
         <Suspense

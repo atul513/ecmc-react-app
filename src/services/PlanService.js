@@ -2,10 +2,10 @@ import ApiService from './ApiService'
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 export async function apiGetPublicPlans() {
-    return ApiService.fetchDataWithAxios({ url: '/plans', method: 'get' })
+    return ApiService.fetchDataWithAxios({ url: '/v1/plans', method: 'get' })
 }
 export async function apiGetPublicPlan(id) {
-    return ApiService.fetchDataWithAxios({ url: `/plans/${id}`, method: 'get' })
+    return ApiService.fetchDataWithAxios({ url: `/v1/plans/${id}`, method: 'get' })
 }
 
 // ─── Student ──────────────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@ import { useAuth } from '@/auth'
 const navMenu = [
     { title: 'Features', value: 'features', to: 'features' },
     { title: 'Pricing', value: 'pricing', to: 'pricing' },
-    { title: 'Explore', value: 'home', href: '/home' },
+    { title: 'Explore', value: 'explore', href: '/explore' },
     { title: 'Practice Sets', value: 'practice-sets', href: '/practice-sets' },
     { title: 'Exams', value: 'exams', href: '/exams' },
     { title: 'Blog', value: 'blog', href: '/blogs' },

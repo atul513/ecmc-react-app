@@ -213,7 +213,6 @@ const navigationIcon = {
     upload: <TbUpload />,
     creditCard: <TbCreditCard />,
     edit: <TbEdit />,
-    chat: <TbMessageCircle />,
     shield: <TbShield />,
     building: <TbBuilding />,
     graduationCap: <TbSchool />,

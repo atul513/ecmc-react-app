@@ -4,7 +4,7 @@ const ADMIN_BASE = '/admin/contact-submissions'
 
 export async function apiSubmitContact(data) {
     return ApiService.fetchDataWithAxios({
-        url: '/contact',
+        url: '/v1/contact',
         method: 'post',
         data,
     })
