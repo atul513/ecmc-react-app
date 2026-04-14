@@ -37,10 +37,18 @@ const PublicBlogDetail = () => {
         setComments([])
         apiGetPublicBlog(slug)
             .then((res) => {
-                setPost(res?.data || null)
+                // res could be { data: { id, title, ... } } or the post object directly
+                const post = res?.data?.id ? res.data : res?.id ? res : null
+                setPost(post)
                 // Load related and comments in parallel after post loads
-                apiGetRelatedBlogs(slug).then((r) => setRelated(r?.data || [])).catch(() => {})
-                apiGetBlogCommentsBySlug(slug).then((r) => setComments(r?.data || [])).catch(() => {})
+                apiGetRelatedBlogs(slug).then((r) => {
+                    const arr = Array.isArray(r?.data) ? r.data : (Array.isArray(r) ? r : [])
+                    setRelated(arr)
+                }).catch(() => {})
+                apiGetBlogCommentsBySlug(slug).then((r) => {
+                    const arr = Array.isArray(r?.data) ? r.data : (Array.isArray(r) ? r : [])
+                    setComments(arr)
+                }).catch(() => {})
             })
             .catch(() => setError(true))
             .finally(() => setLoading(false))

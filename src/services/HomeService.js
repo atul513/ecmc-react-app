@@ -52,6 +52,10 @@ export async function apiGetExamSectionBreadcrumb(id) {
     return ApiService.fetchDataWithAxios({ url: `${V1}/exam-sections/${id}/breadcrumb`, method: 'get' })
 }
 
+export async function apiGetExamSectionHierarchy(params) {
+    return ApiService.fetchDataWithAxios({ url: `${V1}/exam-sections/hierarchy`, method: 'get', params })
+}
+
 // ─── Quizzes & Categories ────────────────────────────────────────────────────
 export async function apiGetPublicQuizCategories(params) {
     return ApiService.fetchDataWithAxios({ url: `${V1}/quiz-categories`, method: 'get', params })

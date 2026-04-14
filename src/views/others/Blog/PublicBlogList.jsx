@@ -100,7 +100,12 @@ const PublicBlogList = () => {
     const perPage = 12
 
     useEffect(() => {
-        apiGetPublicBlogCategories().then((res) => setCategories(res?.data || [])).catch(() => {})
+        apiGetPublicBlogCategories()
+            .then((res) => {
+                const cats = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : [])
+                setCategories(cats)
+            })
+            .catch(() => {})
     }, [])
 
     useEffect(() => {
@@ -110,8 +115,19 @@ const PublicBlogList = () => {
         if (categorySlug) params.category = categorySlug
         apiGetPublicBlogs(params)
             .then((res) => {
-                setPosts(res?.data?.data || res?.data || [])
-                setTotal(res?.data?.total || res?.meta?.total || res?.pagination?.total || 0)
+                // Handle Laravel paginator at any nesting level
+                const paginator = (res?.current_page != null) ? res
+                    : (res?.data?.current_page != null) ? res.data
+                    : null
+
+                if (paginator) {
+                    setPosts(paginator.data || [])
+                    setTotal(paginator.total ?? 0)
+                } else {
+                    const arr = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : [])
+                    setPosts(arr)
+                    setTotal(arr.length)
+                }
             })
             .catch(() => setPosts([]))
             .finally(() => setLoading(false))

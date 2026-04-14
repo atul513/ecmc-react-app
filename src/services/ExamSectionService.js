@@ -24,6 +24,9 @@ export async function apiGetExamSectionContent(id, params) {
 export async function apiGetExamSectionsTree() {
     return ApiService.fetchDataWithAxios({ url: BASE, method: 'get', params: { format: 'tree' } })
 }
+export async function apiGetExamSectionsHierarchy(params) {
+    return ApiService.fetchDataWithAxios({ url: `${BASE}/hierarchy`, method: 'get', params })
+}
 
 // ─── Admin CRUD ───────────────────────────────────────────────────────────────
 export async function apiCreateExamSection(data) {

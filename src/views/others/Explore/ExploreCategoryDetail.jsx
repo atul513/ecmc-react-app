@@ -186,13 +186,19 @@ const ExploreCategoryDetail = () => {
 
         Promise.all([
             apiGetExamSection(slug).catch(() => null),
-            apiGetExamSectionTree(slug).catch(() => ({ data: [] })),
-            apiGetExamSectionBreadcrumb(slug).catch(() => ({ data: [] })),
+            apiGetExamSectionTree(slug).catch(() => null),
+            apiGetExamSectionBreadcrumb(slug).catch(() => null),
         ]).then(([secRes, treeRes, bcRes]) => {
-            if (!secRes?.data) { setError(true); return }
-            setSection(secRes.data)
-            setTree(treeRes?.data || [])
-            setBreadcrumb(bcRes?.data || [])
+            // secRes could be { data: {...} } or the section object directly (with id field)
+            const sec = secRes?.data?.id ? secRes.data : secRes?.id ? secRes : null
+            if (!sec) { setError(true); return }
+            setSection(sec)
+            // tree: could be { data: [...] } or array directly
+            const treeData = Array.isArray(treeRes?.data) ? treeRes.data : (Array.isArray(treeRes) ? treeRes : [])
+            setTree(treeData)
+            // breadcrumb: could be { data: [...] } or array directly
+            const bcData = Array.isArray(bcRes?.data) ? bcRes.data : (Array.isArray(bcRes) ? bcRes : [])
+            setBreadcrumb(bcData)
         }).finally(() => setLoading(false))
     }, [slug])
 
@@ -205,11 +211,19 @@ const ExploreCategoryDetail = () => {
         if (search.trim()) params.search = search.trim()
         apiGetExamSectionContent(slug, params)
             .then((res) => {
-                const cData = res?.data || {}
-                setQuizzes(cData.quizzes?.data || cData.quizzes || [])
-                setQuizTotal(cData.quizzes?.total ?? (cData.quizzes?.data || cData.quizzes || []).length)
-                setPracticeSets(cData.practice_sets?.data || cData.practice_sets || [])
-                setPracticeTotal(cData.practice_sets?.total ?? (cData.practice_sets?.data || cData.practice_sets || []).length)
+                // res could be { data: { quizzes, practice_sets } } or { quizzes, practice_sets } directly
+                const cData = (res?.data?.quizzes || res?.data?.practice_sets) ? res.data
+                    : (res?.quizzes || res?.practice_sets) ? res
+                    : res?.data || {}
+
+                const qRaw = cData.quizzes
+                const pRaw = cData.practice_sets
+
+                // Each could be paginated { data: [...], total } or a plain array
+                setQuizzes(qRaw?.data || (Array.isArray(qRaw) ? qRaw : []))
+                setQuizTotal(qRaw?.total ?? (qRaw?.data || (Array.isArray(qRaw) ? qRaw : [])).length)
+                setPracticeSets(pRaw?.data || (Array.isArray(pRaw) ? pRaw : []))
+                setPracticeTotal(pRaw?.total ?? (pRaw?.data || (Array.isArray(pRaw) ? pRaw : [])).length)
             })
             .catch(() => {})
             .finally(() => setContentLoading(false))

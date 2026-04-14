@@ -9,9 +9,10 @@ import {
     TbPlus, TbEdit, TbTrash, TbSearch, TbLoader,
     TbAlertCircle, TbSitemap, TbChevronRight, TbCheck, TbX,
     TbRefresh, TbChevronLeft, TbSelectAll, TbSquare, TbSquareCheck,
+    TbChevronDown, TbList, TbBinaryTree, TbDots,
 } from 'react-icons/tb'
 import {
-    apiGetExamSections, apiGetExamSectionTypes,
+    apiGetExamSections, apiGetExamSectionTypes, apiGetExamSectionsHierarchy,
     apiCreateExamSection, apiUpdateExamSection, apiDeleteExamSection,
 } from '@/services/ExamSectionService'
 
@@ -155,6 +156,110 @@ const ParentSearchSelect = ({ value, onChange }) => {
     )
 }
 
+// ─── Admin Tree Node ─────────────────────────────────────────────────────────
+const AdminTreeNode = ({ node, depth = 0, onEdit, onAddChild, onDelete }) => {
+    const [open, setOpen] = useState(depth < 1)
+    const [showActions, setShowActions] = useState(false)
+    const children = node.children ?? []
+    const hasChildren = children.length > 0
+    const typeColor = TYPE_COLORS[node.type] || 'bg-gray-100 text-gray-600'
+
+    return (
+        <div>
+            <div
+                className="flex items-center gap-1.5 py-1.5 px-2 rounded-lg group hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors relative"
+                style={{ paddingLeft: depth * 20 + 8 }}
+            >
+                {/* Expand toggle */}
+                {hasChildren ? (
+                    <button
+                        type="button"
+                        onClick={() => setOpen((v) => !v)}
+                        className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 shrink-0 transition-colors"
+                    >
+                        {open ? <TbChevronDown size={14} className="text-gray-500" /> : <TbChevronRight size={14} className="text-gray-500" />}
+                    </button>
+                ) : (
+                    <span className="w-5 h-5 flex items-center justify-center shrink-0">
+                        <span className={`w-1.5 h-1.5 rounded-full ${node.is_active ? (TYPE_COLORS[node.type]?.split(' ')[0] || 'bg-gray-400') : 'bg-gray-300'}`} />
+                    </span>
+                )}
+
+                {/* Type badge */}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold capitalize shrink-0 ${typeColor}`}>
+                    {(node.type || '').replace(/_/g, ' ')}
+                </span>
+
+                {/* Name */}
+                <span className={`text-sm font-medium flex-1 min-w-0 truncate ${node.is_active ? 'text-gray-800 dark:text-gray-100' : 'text-gray-400 line-through'}`}>
+                    {node.name}
+                </span>
+
+                {/* Code */}
+                {node.code && (
+                    <span className="font-mono text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-400 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline">
+                        {node.code}
+                    </span>
+                )}
+
+                {/* Children count */}
+                {hasChildren && (
+                    <span className="text-[10px] text-gray-400 shrink-0">{children.length}</span>
+                )}
+
+                {/* Inactive badge */}
+                {!node.is_active && (
+                    <span className="text-[9px] text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded shrink-0">off</span>
+                )}
+
+                {/* Action buttons - visible on hover */}
+                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => onAddChild(node)}
+                        className="w-6 h-6 rounded flex items-center justify-center text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                        title="Add child section"
+                    >
+                        <TbPlus size={14} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onEdit(node)}
+                        className="w-6 h-6 rounded flex items-center justify-center text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        title="Edit section"
+                    >
+                        <TbEdit size={14} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onDelete(node.id)}
+                        className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title={hasChildren ? 'Has children — cannot delete' : 'Delete section'}
+                    >
+                        <TbTrash size={14} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Children */}
+            {hasChildren && open && (
+                <div className={`${depth === 0 ? 'ml-3 border-l-2 border-gray-100 dark:border-gray-700' : 'ml-3 border-l border-gray-100 dark:border-gray-700/50'}`}>
+                    {children.map((child) => (
+                        <AdminTreeNode
+                            key={child.id}
+                            node={child}
+                            depth={depth + 1}
+                            onEdit={onEdit}
+                            onAddChild={onAddChild}
+                            onDelete={onDelete}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 const ExamSectionList = () => {
     const [items, setItems] = useState([])
@@ -174,6 +279,11 @@ const ExamSectionList = () => {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
     const [bulkDeleting, setBulkDeleting] = useState(false)
     const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 })
+
+    // View mode
+    const [viewMode, setViewMode] = useState('table') // 'table' | 'tree'
+    const [hierarchy, setHierarchy] = useState([])
+    const [treeLoading, setTreeLoading] = useState(false)
 
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editItem, setEditItem] = useState(null)
@@ -203,13 +313,16 @@ const ExamSectionList = () => {
         if (debouncedSearch) params.search = debouncedSearch
         apiGetExamSections(params)
             .then((res) => {
-                const d = res?.data
-                if (d && d.data && Array.isArray(d.data)) {
-                    setItems(d.data)
-                    setLastPage(d.last_page ?? 1)
-                    setTotal(d.total ?? d.data.length)
+                // Detect Laravel paginator at any nesting level
+                const paginator = (res?.current_page != null) ? res
+                    : (res?.data?.current_page != null) ? res.data
+                    : null
+                if (paginator) {
+                    setItems(paginator.data || [])
+                    setLastPage(paginator.last_page ?? 1)
+                    setTotal(paginator.total ?? 0)
                 } else {
-                    const arr = Array.isArray(d) ? d : []
+                    const arr = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : [])
                     setItems(arr)
                     setLastPage(1)
                     setTotal(arr.length)
@@ -219,11 +332,36 @@ const ExamSectionList = () => {
             .finally(() => setLoading(false))
     }, [filterType, filterActive, debouncedSearch, page])
 
+    const fetchTree = useCallback(() => {
+        setTreeLoading(true)
+        const params = {}
+        if (filterType) params.type = filterType
+        if (debouncedSearch) params.search = debouncedSearch
+        apiGetExamSectionsHierarchy(params)
+            .then((res) => {
+                const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : [])
+                setHierarchy(data)
+            })
+            .catch(() => setHierarchy([]))
+            .finally(() => setTreeLoading(false))
+    }, [filterType, debouncedSearch])
+
+    useEffect(() => {
+        if (viewMode === 'tree') fetchTree()
+    }, [viewMode, fetchTree])
+
     useEffect(() => {
         apiGetExamSectionTypes()
             .then((res) => {
-                const t = res?.data || []
-                setTypes(Array.isArray(t) ? t : FALLBACK_TYPES)
+                const raw = res?.data ?? res
+                if (Array.isArray(raw)) {
+                    setTypes(raw)
+                } else if (raw && typeof raw === 'object') {
+                    // Object map: { "exam_group": "Exam Group (...)", ... } → extract keys
+                    setTypes(Object.keys(raw))
+                } else {
+                    setTypes(FALLBACK_TYPES)
+                }
             })
             .catch(() => setTypes(FALLBACK_TYPES))
     }, [])
@@ -293,6 +431,7 @@ const ExamSectionList = () => {
             setDeleteId(null)
             if (items.length === 1 && page > 1) setPage((p) => p - 1)
             else fetchItems()
+            if (viewMode === 'tree') fetchTree()
         } catch (err) {
             toast.push(<Notification type="danger" title={err?.response?.data?.message || 'Delete failed'} />, { placement: 'top-center' })
         } finally {
@@ -301,8 +440,15 @@ const ExamSectionList = () => {
     }
 
     // ── Dialog open/close ──────────────────────────────────────────────────────
-    const openCreate = () => {
-        setEditItem(null); setForm(EMPTY_FORM); setSelectedParent(null); setDialogOpen(true)
+    const openCreate = (parentNode) => {
+        setEditItem(null)
+        setForm(EMPTY_FORM)
+        if (parentNode) {
+            setSelectedParent({ id: parentNode.id, name: parentNode.name, type: parentNode.type, code: parentNode.code })
+        } else {
+            setSelectedParent(null)
+        }
+        setDialogOpen(true)
     }
 
     const openEdit = (item) => {
@@ -341,6 +487,7 @@ const ExamSectionList = () => {
             }
             setDialogOpen(false)
             fetchItems()
+            if (viewMode === 'tree') fetchTree()
         } catch (err) {
             toast.push(<Notification type="danger" title={err?.response?.data?.message || 'Save failed'} />, { placement: 'top-center' })
         } finally {
@@ -377,9 +524,24 @@ const ExamSectionList = () => {
                         Exam Group → Exam → Variant → Class → Subject → Chapter → Topic
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <Button icon={<TbRefresh />} onClick={() => fetchItems()} disabled={loading} />
-                    <Button variant="solid" icon={<TbPlus />} onClick={openCreate}>Add Section</Button>
+                <div className="flex gap-2 items-center">
+                    {/* View toggle */}
+                    <div className="flex bg-gray-100 dark:bg-gray-700 rounded-xl p-0.5">
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === 'table' ? 'bg-white dark:bg-gray-600 shadow text-gray-800 dark:text-white' : 'text-gray-500'}`}
+                        >
+                            <TbList size={14} /> Table
+                        </button>
+                        <button
+                            onClick={() => setViewMode('tree')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === 'tree' ? 'bg-white dark:bg-gray-600 shadow text-gray-800 dark:text-white' : 'text-gray-500'}`}
+                        >
+                            <TbBinaryTree size={14} /> Tree
+                        </button>
+                    </div>
+                    <Button icon={<TbRefresh />} onClick={() => { fetchItems(); if (viewMode === 'tree') fetchTree() }} disabled={loading || treeLoading} />
+                    <Button variant="solid" icon={<TbPlus />} onClick={() => openCreate()}>Add Section</Button>
                 </div>
             </div>
 
@@ -411,8 +573,8 @@ const ExamSectionList = () => {
                 </div>
             </div>
 
-            {/* Bulk action bar */}
-            {someSelected && (
+            {/* Bulk action bar (table view only) */}
+            {viewMode === 'table' && someSelected && (
                 <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-4 py-2.5">
                     <TbSquareCheck className="text-amber-600 text-lg shrink-0" />
                     <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
@@ -442,8 +604,8 @@ const ExamSectionList = () => {
                 </div>
             )}
 
-            {/* Tip for bulk delete workflow */}
-            {!someSelected && (
+            {/* Tip for bulk delete workflow (table view only) */}
+            {viewMode === 'table' && !someSelected && (
                 <div className="flex items-start gap-2 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl px-4 py-2.5">
                     <TbSelectAll className="text-blue-400 text-base mt-0.5 shrink-0" />
                     <p className="text-xs text-blue-600 dark:text-blue-400">
@@ -452,7 +614,43 @@ const ExamSectionList = () => {
                 </div>
             )}
 
-            {/* Table */}
+            {/* ── Tree View ── */}
+            {viewMode === 'tree' && (
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    {treeLoading ? (
+                        <div className="flex justify-center py-16">
+                            <TbLoader className="animate-spin text-4xl text-primary" />
+                        </div>
+                    ) : hierarchy.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
+                            <TbAlertCircle className="text-4xl" />
+                            <p>No exam sections found</p>
+                        </div>
+                    ) : (
+                        <div className="p-4 max-h-[70vh] overflow-y-auto">
+                            <div className="text-xs text-gray-400 mb-3 flex items-center gap-2">
+                                <TbSitemap className="text-primary" />
+                                {hierarchy.length} root section{hierarchy.length !== 1 ? 's' : ''} — hover any row for actions (edit, add child, delete)
+                            </div>
+                            <div className="space-y-0.5">
+                                {hierarchy.map((root) => (
+                                    <AdminTreeNode
+                                        key={root.id}
+                                        node={root}
+                                        depth={0}
+                                        onEdit={openEdit}
+                                        onAddChild={(parent) => openCreate(parent)}
+                                        onDelete={(id) => setDeleteId(id)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── Table View ── */}
+            {viewMode === 'table' && <>
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                 {loading ? (
                     <div className="flex justify-center py-16">
@@ -598,6 +796,7 @@ const ExamSectionList = () => {
                     </div>
                 )}
             </div>
+            </>}
 
             {/* Create/Edit Dialog */}
             <Dialog isOpen={dialogOpen} onClose={() => setDialogOpen(false)} onRequestClose={() => setDialogOpen(false)} width={580}>
