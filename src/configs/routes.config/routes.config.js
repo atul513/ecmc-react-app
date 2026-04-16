@@ -126,6 +126,20 @@ export const openRoutes = [
         authority: [],
         meta: legalMeta,
     },
+    {
+        key: 'share-landing',
+        path: `/share/:shareCode`,
+        component: lazy(() => import('@/views/share/ShareLandingPage')),
+        authority: [],
+        meta: legalMeta,
+    },
+    {
+        key: 'invite-landing',
+        path: `/invite/:inviteCode`,
+        component: lazy(() => import('@/views/share/InviteLandingPage')),
+        authority: [],
+        meta: legalMeta,
+    },
 ]
 
 export const protectedRoutes = [

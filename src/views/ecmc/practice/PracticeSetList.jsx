@@ -17,7 +17,8 @@ import {
 import { apiGetQuizCategories } from '@/services/QuizService'
 import { apiGetSubjects } from '@/services/QBankService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
-import { TbPlus, TbPencil, TbTrash, TbSearch, TbPlayerPlay, TbStar } from 'react-icons/tb'
+import ShareInvitePanel from '@/views/share/ShareInvitePanel'
+import { TbPlus, TbPencil, TbTrash, TbSearch, TbPlayerPlay, TbStar, TbShare } from 'react-icons/tb'
 
 const { THead, TBody, Tr, Th, Td } = Table
 

@@ -14,8 +14,9 @@ import Pagination from '@/components/ui/Pagination'
 import { apiGetQuizzes, apiDeleteQuiz, apiPublishQuiz, apiArchiveQuiz, apiGetQuizCategories } from '@/services/QuizService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
 import Tooltip from '@/components/ui/Tooltip'
+import ShareInvitePanel from '@/views/share/ShareInvitePanel'
 import {
-    TbPlus, TbPencil, TbTrash, TbSearch, TbPlayerPlay, TbArchive,
+    TbPlus, TbPencil, TbTrash, TbSearch, TbPlayerPlay, TbArchive, TbShare,
 } from 'react-icons/tb'
 
 const { THead, TBody, Tr, Th, Td } = Table
@@ -91,6 +92,7 @@ const QuizList = () => {
         type: '', status: '', visibility: '', access_type: '', category_id: '', page: 1, per_page: 15,
     })
     const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null })
+    const [shareItem, setShareItem] = useState(null)
     const [actionLoading, setActionLoading] = useState(null)
 
     const load = useCallback(async () => {
@@ -278,6 +280,15 @@ const QuizList = () => {
                                                             onClick={() => navigate(`${ECMC_PREFIX_PATH}/quiz/edit/${q.id}`)}
                                                         />
                                                     </Tooltip>
+                                                    <Tooltip title="Share / Invite">
+                                                        <Button
+                                                            size="xs"
+                                                            variant="plain"
+                                                            className="text-blue-500"
+                                                            icon={<TbShare />}
+                                                            onClick={() => setShareItem(q)}
+                                                        />
+                                                    </Tooltip>
                                                     {['draft', 'archived'].includes(q.status) && (
                                                         <Tooltip title="Publish Quiz">
                                                             <Button
@@ -334,6 +345,14 @@ const QuizList = () => {
                     )}
                 </div>
             </AdaptiveCard>
+
+            <ShareInvitePanel
+                isOpen={!!shareItem}
+                onClose={() => setShareItem(null)}
+                contentType="quiz"
+                contentId={shareItem?.id}
+                contentTitle={shareItem?.title}
+            />
 
             <Dialog
                 isOpen={deleteDialog.open}

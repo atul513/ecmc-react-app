@@ -14,7 +14,7 @@ import {
 import {
     TbChevronRight, TbClipboardList, TbStar, TbLock,
     TbClock, TbBook, TbArrowLeft, TbPlayerPlay,
-    TbSchool, TbSearch, TbX, TbMinus, TbFreeRights,
+    TbSchool, TbSearch, TbX, TbMinus,
     TbQuestionMark, TbChartBar,
 } from 'react-icons/tb'
 
@@ -62,7 +62,7 @@ const ContentCard = ({ item, type }) => {
                     </span>
                     {item.access_type === 'free' ? (
                         <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 px-2 py-0.5 rounded-full">
-                            <TbFreeRights size={10} /> Free
+                            Free
                         </span>
                     ) : (
                         <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-2 py-0.5 rounded-full">
