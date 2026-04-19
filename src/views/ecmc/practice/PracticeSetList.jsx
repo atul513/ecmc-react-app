@@ -19,6 +19,7 @@ import { apiGetSubjects } from '@/services/QBankService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
 import ShareInvitePanel from '@/views/share/ShareInvitePanel'
 import { TbPlus, TbPencil, TbTrash, TbSearch, TbPlayerPlay, TbStar, TbShare } from 'react-icons/tb'
+import Tooltip from '@/components/ui/Tooltip'
 
 const { THead, TBody, Tr, Th, Td } = Table
 
@@ -69,6 +70,7 @@ const PracticeSetList = () => {
     const [search, setSearch] = useState('')
     const [filters, setFilters] = useState({ status: '', access_type: '', category_id: '', subject_id: '', topic_id: '', page: 1, per_page: 15 })
     const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null })
+    const [shareItem, setShareItem] = useState(null)
     const [actionLoading, setActionLoading] = useState(null)
 
     const load = useCallback(async () => {
@@ -201,8 +203,15 @@ const PracticeSetList = () => {
                                                     <Td>{statusBadge(s.status)}</Td>
                                                     <Td>
                                                         <div className="flex gap-1">
-                                                            <Button size="xs" icon={<TbPencil />}
-                                                                onClick={() => navigate(`${ECMC_PREFIX_PATH}/practice/edit/${s.id}`)} />
+                                                            <Tooltip title="Edit">
+                                                                <Button size="xs" icon={<TbPencil />}
+                                                                    onClick={() => navigate(`${ECMC_PREFIX_PATH}/practice/edit/${s.id}`)} />
+                                                            </Tooltip>
+                                                            <Tooltip title="Share / Invite">
+                                                                <Button size="xs" variant="plain" className="text-blue-500"
+                                                                    icon={<TbShare />}
+                                                                    onClick={() => setShareItem(s)} />
+                                                            </Tooltip>
                                                             {s.status === 'draft' && (
                                                                 <Button size="xs" variant="plain" className="text-emerald-600"
                                                                     icon={<TbPlayerPlay />}
@@ -231,6 +240,14 @@ const PracticeSetList = () => {
                     )}
                 </div>
             </AdaptiveCard>
+
+            <ShareInvitePanel
+                isOpen={!!shareItem}
+                onClose={() => setShareItem(null)}
+                contentType="practice_set"
+                contentId={shareItem?.id}
+                contentTitle={shareItem?.title}
+            />
 
             <Dialog isOpen={deleteDialog.open}
                 onClose={() => setDeleteDialog({ open: false, item: null })}

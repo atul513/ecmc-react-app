@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { apiGetAttemptReport, apiDownloadAttemptReportPdf } from '@/services/QuizService'
+import MathContent from '@/components/shared/MathContent'
 
 import {
     TbArrowLeft, TbDownload, TbCheck, TbX, TbMinus,
@@ -201,8 +202,10 @@ const QuestionCard = ({ q, idx }) => {
                     <QStatusIcon status={status} />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100 leading-snug line-clamp-2"
-                        dangerouslySetInnerHTML={{ __html: qData.question_text ?? qData.text ?? '—' }}
+                    <MathContent
+                        html={qData.question_text ?? qData.text ?? '—'}
+                        as="div"
+                        className="text-sm font-medium text-gray-800 dark:text-gray-100 leading-snug line-clamp-2"
                     />
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
                         {qData.difficulty && (
@@ -254,7 +257,7 @@ const QuestionCard = ({ q, idx }) => {
                                         <span className="w-6 h-6 rounded-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">
                                             {LABELS[i] ?? i + 1}
                                         </span>
-                                        <span className="text-sm flex-1">{opt.option_text ?? opt.text}</span>
+                                        <MathContent html={opt.option_text ?? opt.text} className="text-sm flex-1" />
                                         {isCorrect && <TbCheck className="text-emerald-600 shrink-0" />}
                                         {isStudentPick && !isCorrect && <TbX className="text-red-500 shrink-0" />}
                                     </div>
@@ -332,9 +335,10 @@ const QuestionCard = ({ q, idx }) => {
                             <div className="flex items-center gap-1.5 text-blue-700 dark:text-blue-400 text-xs font-semibold mb-2">
                                 <TbBulb /> Explanation
                             </div>
-                            <div
+                            <MathContent
+                                html={q.explanation ?? qData.explanation}
+                                as="div"
                                 className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: q.explanation ?? qData.explanation }}
                             />
                         </div>
                     )}
@@ -345,9 +349,10 @@ const QuestionCard = ({ q, idx }) => {
                             <div className="flex items-center gap-1.5 text-violet-700 dark:text-violet-400 text-xs font-semibold mb-2">
                                 <TbStar /> Solution Approach
                             </div>
-                            <div
+                            <MathContent
+                                html={q.solution_approach ?? qData.solution_approach}
+                                as="div"
                                 className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: q.solution_approach ?? qData.solution_approach }}
                             />
                         </div>
                     )}

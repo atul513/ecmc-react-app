@@ -20,7 +20,7 @@ import {
     TbLayoutGrid,
     TbX,
 } from 'react-icons/tb'
-import 'katex/dist/katex.min.css'
+import MathContent from '@/components/shared/MathContent'
 
 // ─── Option label A B C D ──────────────────────────────────────────────────────
 const LABELS = ['A', 'B', 'C', 'D', 'E', 'F']
@@ -51,7 +51,7 @@ const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankC
                                 ${isSelected ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-600 text-gray-500'}`}>
                                 {LABELS[i] || i + 1}
                             </span>
-                            <span className="text-sm leading-snug">{opt.option_text}</span>
+                            <MathContent html={opt.option_text} className="text-sm leading-snug" />
                         </button>
                     )
                 })}
@@ -83,7 +83,7 @@ const QuestionInput = ({ wrapper, answer, onOptionSelect, onTextChange, onBlankC
                                 {isSelected && <TbCheck className="text-white text-xs" />}
                             </span>
                             <span className="text-xs text-gray-400 font-medium w-5 shrink-0">{LABELS[i]}</span>
-                            <span className="text-sm leading-snug">{opt.option_text}</span>
+                            <MathContent html={opt.option_text} className="text-sm leading-snug" />
                         </button>
                     )
                 })}
@@ -574,9 +574,10 @@ const QuizAttempt = () => {
                                     </div>
 
                                     {/* Question text */}
-                                    <div
+                                    <MathContent
+                                        html={wrapper.question?.question_text}
+                                        as="div"
                                         className="prose prose-sm dark:prose-invert max-w-full mb-5 text-base leading-relaxed"
-                                        dangerouslySetInnerHTML={{ __html: wrapper.question?.question_text }}
                                     />
 
                                     {/* Answer input */}
