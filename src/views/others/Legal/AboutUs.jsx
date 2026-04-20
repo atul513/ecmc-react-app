@@ -1,4 +1,5 @@
 import LegalPageLayout from './LegalPageLayout'
+import { APP_NAME } from '@/constants/app.constant'
 
 const stats = [
     { label: 'Schools', value: '500+' },
@@ -16,9 +17,9 @@ const team = [
 
 const AboutUs = () => {
     return (
-        <LegalPageLayout title="About Us" description="Learn about ECMC — the smart online exam and practice platform built for students, teachers and institutions." canonical="/about">
+        <LegalPageLayout title="About Us" description={`Learn about ${APP_NAME} — the smart online exam and practice platform built for students, teachers and institutions.`} canonical="/about">
             <p className="text-lg">
-                ECMC is a modern school management platform built to simplify
+                {APP_NAME} is a modern school management platform built to simplify
                 administration, empower teachers, and keep students and parents
                 connected — all in one place.
             </p>
@@ -35,7 +36,7 @@ const AboutUs = () => {
             <section>
                 <h2 className="text-xl font-semibold heading-text">Our Story</h2>
                 <p>
-                    Founded in 2020, ECMC started as a small tool for a single school
+                    Founded in 2020, {APP_NAME} started as a small tool for a single school
                     district. Today, we serve hundreds of schools across 20+ countries,
                     helping administrators, teachers, students, and parents stay aligned
                     through a single, intuitive platform.

@@ -204,7 +204,6 @@ const QuestionCard = ({ q, idx }) => {
                 <div className="flex-1 min-w-0">
                     <MathContent
                         html={qData.question_text ?? qData.text ?? '—'}
-                        as="div"
                         className="text-sm font-medium text-gray-800 dark:text-gray-100 leading-snug line-clamp-2"
                     />
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
@@ -337,7 +336,6 @@ const QuestionCard = ({ q, idx }) => {
                             </div>
                             <MathContent
                                 html={q.explanation ?? qData.explanation}
-                                as="div"
                                 className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
                             />
                         </div>
@@ -351,7 +349,6 @@ const QuestionCard = ({ q, idx }) => {
                             </div>
                             <MathContent
                                 html={q.solution_approach ?? qData.solution_approach}
-                                as="div"
                                 className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
                             />
                         </div>

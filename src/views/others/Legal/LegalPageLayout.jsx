@@ -3,6 +3,7 @@ import Container from '@/views/others/Landing/components/LandingContainer'
 import useDarkMode from '@/utils/hooks/useDarkMode'
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 import SEO from '@/components/shared/SEO'
+import { APP_NAME } from '@/constants/app.constant'
 
 const LegalPageLayout = ({ title, description, canonical, lastUpdated, children }) => {
     const [isDark, setMode] = useDarkMode()
@@ -37,7 +38,7 @@ const LegalPageLayout = ({ title, description, canonical, lastUpdated, children 
             <div className="border-t border-gray-200 dark:border-gray-800 py-6">
                 <Container>
                     <p className="text-center text-sm text-gray-500">
-                        © {year} ECMC. All rights reserved.
+                        © {year} {APP_NAME}. All rights reserved.
                     </p>
                 </Container>
             </div>

@@ -19,7 +19,7 @@ import {
     TbLayoutGrid,
     TbBulb,
 } from 'react-icons/tb'
-import 'katex/dist/katex.min.css'
+import MathContent from '@/components/shared/MathContent'
 
 const LABELS = ['A', 'B', 'C', 'D', 'E', 'F']
 
@@ -505,9 +505,9 @@ const PracticeAttempt = () => {
                                     </div>
 
                                     {/* Question text */}
-                                    <div
+                                    <MathContent
+                                        html={question.question_text}
                                         className="prose prose-sm dark:prose-invert max-w-full mb-5 text-base leading-relaxed"
-                                        dangerouslySetInnerHTML={{ __html: question.question_text }}
                                     />
 
                                     {/* Answer input */}
@@ -550,9 +550,9 @@ const PracticeAttempt = () => {
                                             {currentFeedback.explanation && (
                                                 <div className="flex gap-2 mt-1">
                                                     <TbBulb className="text-amber-500 shrink-0 mt-0.5 text-base" />
-                                                    <div
+                                                    <MathContent
+                                                        html={currentFeedback.explanation}
                                                         className="text-sm text-gray-600 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-full"
-                                                        dangerouslySetInnerHTML={{ __html: currentFeedback.explanation }}
                                                     />
                                                 </div>
                                             )}

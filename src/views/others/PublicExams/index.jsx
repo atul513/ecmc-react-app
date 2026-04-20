@@ -10,6 +10,7 @@ import {
     TbClipboardList, TbLoader, TbAlertCircle, TbStar, TbLock,
     TbClock, TbInbox, TbMinus,
 } from 'react-icons/tb'
+import { APP_NAME } from '@/constants/app.constant'
 
 const LIMIT = 8
 

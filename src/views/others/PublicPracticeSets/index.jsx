@@ -9,6 +9,7 @@ import { apiGetHomePracticeSets } from '@/services/HomeService'
 import {
     TbBook, TbLoader, TbAlertCircle, TbStar, TbLock, TbInbox,
 } from 'react-icons/tb'
+import { APP_NAME } from '@/constants/app.constant'
 
 const LIMIT = 8
 
@@ -117,7 +118,7 @@ const PublicPracticeSets = () => {
         <main className="w-full text-base min-h-screen bg-gray-50 dark:bg-gray-900">
             <SEO
                 title="Practice Sets — Free & Premium Online Practice"
-                description="Practise with curated question sets across subjects. Get instant feedback, earn reward points and track your progress on ECMC."
+                description={`Practise with curated question sets across subjects. Get instant feedback, earn reward points and track your progress on ${APP_NAME}.`}
                 canonical="/practice-sets"
             />
             <NavigationBar toggleMode={toggleMode} mode={mode} />

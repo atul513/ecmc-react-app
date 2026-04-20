@@ -1,10 +1,11 @@
 import LegalPageLayout from './LegalPageLayout'
+import { APP_NAME } from '@/constants/app.constant'
 
 const CookiePolicy = () => {
     return (
-        <LegalPageLayout title="Cookie Policy" description="Read how ECMC uses cookies to improve your experience." canonical="/cookie-policy" lastUpdated="March 24, 2026">
+        <LegalPageLayout title="Cookie Policy" description={`Read how ${APP_NAME} uses cookies to improve your experience.`} canonical="/cookie-policy" lastUpdated="March 24, 2026">
             <p>
-                This Cookie Policy explains how ECMC uses cookies and similar tracking
+                This Cookie Policy explains how {APP_NAME} uses cookies and similar tracking
                 technologies when you use our Platform.
             </p>
 

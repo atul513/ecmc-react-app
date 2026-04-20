@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import LegalPageLayout from './LegalPageLayout'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
+import { APP_NAME } from '@/constants/app.constant'
 
 const faqs = [
     {
@@ -11,12 +12,12 @@ const faqs = [
                 a: 'Accounts are created by your school administrator. Contact your admin to get your login credentials.',
             },
             {
-                q: 'What roles are available on ECMC?',
-                a: 'ECMC supports five roles: Super Admin, School Admin, Teacher, Student, and Parent. Each role has a tailored dashboard and permissions.',
+                q: `What roles are available on ${APP_NAME}?`,
+                a: `${APP_NAME} supports five roles: Super Admin, School Admin, Teacher, Student, and Parent. Each role has a tailored dashboard and permissions.`,
             },
             {
-                q: 'Can I use ECMC on my phone?',
-                a: 'Yes. ECMC is fully responsive and works on desktop, tablet, and mobile browsers.',
+                q: `Can I use ${APP_NAME} on my phone?`,
+                a: `Yes. ${APP_NAME} is fully responsive and works on desktop, tablet, and mobile browsers.`,
             },
         ],
     },
@@ -91,9 +92,9 @@ const FAQItem = ({ q, a }) => {
 
 const FAQ = () => {
     return (
-        <LegalPageLayout title="FAQ — Frequently Asked Questions" description="Find answers to the most common questions about ECMC exams, practice sets, subscriptions and accounts." canonical="/faq">
+        <LegalPageLayout title="FAQ — Frequently Asked Questions" description={`Find answers to the most common questions about ${APP_NAME} exams, practice sets, subscriptions and accounts.`} canonical="/faq">
             <p>
-                Find answers to the most common questions about ECMC. Can't find what
+                Find answers to the most common questions about {APP_NAME}. Can't find what
                 you're looking for?{' '}
                 <a href="/contact" className="text-primary hover:underline">
                     Contact us

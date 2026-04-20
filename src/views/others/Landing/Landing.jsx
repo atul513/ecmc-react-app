@@ -8,10 +8,21 @@ import { useAuth } from '@/auth'
 import { apiGetPublicPlans } from '@/services/PlanService'
 import SEO from '@/components/shared/SEO'
 import {
-    TbPlayerPlay, TbArrowRight, TbCheck, TbStar,
-    TbBrain, TbDeviceAnalytics, TbShieldCheck, TbClock,
-    TbDeviceMobile, TbBook, TbTrophy, TbUsers,
-    TbQuote, TbLoader,
+    TbPlayerPlay,
+    TbArrowRight,
+    TbCheck,
+    TbStar,
+    TbBrain,
+    TbDeviceAnalytics,
+    TbShieldCheck,
+    TbClock,
+    TbDeviceMobile,
+    TbBook,
+    TbTrophy,
+    TbUsers,
+    TbQuote,
+    TbLoader,
+    TbChartBar,
 } from 'react-icons/tb'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -73,6 +84,20 @@ const features = [
         color: 'text-indigo-600',
         bg: 'bg-indigo-50 dark:bg-indigo-900/20',
     },
+    {
+        icon: TbQuote,
+        title: 'Instant Results & Feedback',
+        desc: 'Instant results with detailed analysis, explanations and reward points for every answer.',
+        color: 'text-pink-600',
+        bg: 'bg-pink-50 dark:bg-pink-900/20',
+    },
+    {
+        icon: TbChartBar,
+        title: 'Smart Performance Insights',
+        desc: 'AI-driven insights highlighting weak areas, improvement suggestions, and personalized learning paths.',
+        color: 'text-green-600',
+        bg: 'bg-green-50 dark:bg-green-900/20',
+    },
 ]
 
 const testimonials = [
@@ -92,6 +117,24 @@ const testimonials = [
         name: 'Prof. Anita Desai',
         role: 'Principal, DAV Public School',
         text: 'We switched from paper-based exams to this platform. Saves time, reduces errors, and students love the instant results.',
+        avatar: null,
+    },
+    {
+        name: 'Sneha Patil',
+        role: 'JEE Aspirant, Class 11',
+        text: 'The detailed analytics helped me identify my weak topics quickly. The adaptive quizzes made my preparation much more effective.',
+        avatar: null,
+    },
+    {
+        name: 'Amit Sharma',
+        role: 'SSC CGL Aspirant',
+        text: 'The mock tests feel like real exams. Timer, ranking, and instant results boosted my confidence and speed significantly.',
+        avatar: null,
+    },
+    {
+        name: 'Priya Kulkarni',
+        role: 'MHT-CET Aspirant, Class 12',
+        text: 'The leaderboard and daily practice tests kept me motivated. I could track my progress consistently and improve my accuracy week by week.',
         avatar: null,
     },
 ]
@@ -126,7 +169,8 @@ const Landing = () => {
     const { authenticated } = useAuth()
     const [isDark, setMode] = useDarkMode()
     const mode = isDark ? MODE_DARK : MODE_LIGHT
-    const toggleMode = () => setMode(mode === MODE_LIGHT ? MODE_DARK : MODE_LIGHT)
+    const toggleMode = () =>
+        setMode(mode === MODE_LIGHT ? MODE_DARK : MODE_LIGHT)
 
     const [apiPlans, setApiPlans] = useState([])
     const [plansLoading, setPlansLoading] = useState(true)
@@ -146,7 +190,8 @@ const Landing = () => {
         '@type': 'WebSite',
         name: 'ECMC',
         url: 'https://test.store4robo.com',
-        description: 'Smart platform for online exams, quizzes and practice sets for students and educators.',
+        description:
+            'Smart platform for online exams, quizzes and practice sets for students and educators.',
         potentialAction: {
             '@type': 'SearchAction',
             target: 'https://test.store4robo.com/exams?q={search_term_string}',
@@ -156,10 +201,7 @@ const Landing = () => {
 
     return (
         <main className="w-full text-base">
-            <SEO
-                canonical="/landing"
-                schema={landingSchema}
-            />
+            <SEO canonical="/landing" schema={landingSchema} />
             <NavigationBar toggleMode={toggleMode} mode={mode} />
 
             {/* ── Hero ── */}
@@ -177,13 +219,16 @@ const Landing = () => {
                         <span className="text-primary"> Practice</span>
                     </h1>
                     <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                        Create quizzes, conduct exams, practice with instant feedback, and track
-                        performance — all in one powerful platform built for students and educators.
+                        Create quizzes, conduct exams, practice with instant
+                        feedback, and track performance — all in one powerful
+                        platform built for students and educators.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         {authenticated ? (
                             <button
-                                onClick={() => navigate('/ecmc/student/dashboard')}
+                                onClick={() =>
+                                    navigate('/ecmc/student/dashboard')
+                                }
                                 className="inline-flex items-center gap-2 bg-primary text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 text-base"
                             >
                                 Go to Dashboard <TbArrowRight />
@@ -213,21 +258,29 @@ const Landing = () => {
                 <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
                     {stats.map((s) => (
                         <div key={s.label} className="text-center">
-                            <div className="text-3xl md:text-4xl font-extrabold text-primary">{s.value}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{s.label}</div>
+                            <div className="text-3xl md:text-4xl font-extrabold text-primary">
+                                {s.value}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {s.label}
+                            </div>
                         </div>
                     ))}
                 </div>
             </section>
 
             {/* ── Features ── */}
-            <section id="features" className="px-4 py-20 md:py-28 max-w-6xl mx-auto">
+            <section
+                id="features"
+                className="px-4 py-20 md:py-28 max-w-6xl mx-auto"
+            >
                 <div className="text-center mb-14">
                     <h2 className="text-3xl md:text-4xl font-extrabold heading-text mb-4">
                         Everything You Need to Excel
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-                        A complete assessment platform with powerful features for students, teachers, and institutions.
+                        A complete assessment platform with powerful features
+                        for students, teachers, and institutions.
                     </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -236,11 +289,17 @@ const Landing = () => {
                             key={f.title}
                             className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
                         >
-                            <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                            <div
+                                className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                            >
                                 <f.icon className={`text-2xl ${f.color}`} />
                             </div>
-                            <h3 className="font-bold heading-text mb-2">{f.title}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{f.desc}</p>
+                            <h3 className="font-bold heading-text mb-2">
+                                {f.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                                {f.desc}
+                            </p>
                         </div>
                     ))}
                 </div>
@@ -253,20 +312,38 @@ const Landing = () => {
                         <h2 className="text-3xl md:text-4xl font-extrabold heading-text mb-4">
                             How It Works
                         </h2>
-                        <p className="text-gray-500 dark:text-gray-400">Get started in 3 simple steps</p>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Get started in 3 simple steps
+                        </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { step: '1', title: 'Sign Up Free', desc: 'Create your account in seconds. No credit card required.' },
-                            { step: '2', title: 'Take Quizzes', desc: 'Browse available quizzes, practice sets, and exams. Start attempting.' },
-                            { step: '3', title: 'Track Progress', desc: 'Get instant results, detailed reports, and improve with every attempt.' },
+                            {
+                                step: '1',
+                                title: 'Sign Up Free',
+                                desc: 'Create your account in seconds. No credit card required.',
+                            },
+                            {
+                                step: '2',
+                                title: 'Take Quizzes',
+                                desc: 'Browse available quizzes, practice sets, and exams. Start attempting.',
+                            },
+                            {
+                                step: '3',
+                                title: 'Track Progress',
+                                desc: 'Get instant results, detailed reports, and improve with every attempt.',
+                            },
                         ].map((item) => (
                             <div key={item.step} className="text-center">
                                 <div className="w-14 h-14 rounded-2xl bg-primary text-white text-xl font-extrabold flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/25">
                                     {item.step}
                                 </div>
-                                <h3 className="font-bold heading-text text-lg mb-2">{item.title}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{item.desc}</p>
+                                <h3 className="font-bold heading-text text-lg mb-2">
+                                    {item.title}
+                                </h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {item.desc}
+                                </p>
                             </div>
                         ))}
                     </div>
@@ -274,7 +351,10 @@ const Landing = () => {
             </section>
 
             {/* ── Pricing ── */}
-            <section id="pricing" className="px-4 py-20 md:py-28 max-w-6xl mx-auto">
+            <section
+                id="pricing"
+                className="px-4 py-20 md:py-28 max-w-6xl mx-auto"
+            >
                 <div className="text-center mb-14">
                     <h2 className="text-3xl md:text-4xl font-extrabold heading-text mb-4">
                         Simple, Transparent Pricing
@@ -288,24 +368,36 @@ const Landing = () => {
                         <TbLoader className="text-3xl text-primary animate-spin" />
                     </div>
                 ) : (
-                    <div className={`grid grid-cols-1 gap-6 ${pricingPlans.length <= 2 ? 'md:grid-cols-2 max-w-2xl mx-auto' : 'md:grid-cols-3'}`}>
+                    <div
+                        className={`grid grid-cols-1 gap-6 ${pricingPlans.length <= 2 ? 'md:grid-cols-2 max-w-2xl mx-auto' : 'md:grid-cols-3'}`}
+                    >
                         {pricingPlans.map((plan, idx) => {
-                            const price = plan.isStatic ? null : Number(plan.price)
+                            const price = plan.isStatic
+                                ? null
+                                : Number(plan.price)
                             const isFree = !plan.isStatic && price === 0
-                            const isPopular = !plan.isStatic && idx === 1 && apiPlans.length >= 2
+                            const isPopular =
+                                !plan.isStatic &&
+                                idx === 1 &&
+                                apiPlans.length >= 2
 
                             const handleClick = () => {
                                 if (plan.isStatic) return navigate('/contact')
-                                if (authenticated) return navigate(`/payment/${plan.id}`)
+                                if (authenticated)
+                                    return navigate(`/payment/${plan.id}`)
                                 if (isFree) return navigate('/sign-up')
-                                navigate(`/sign-in?redirectUrl=${encodeURIComponent(`/payment/${plan.id}`)}`)
+                                navigate(
+                                    `/sign-in?redirectUrl=${encodeURIComponent(`/payment/${plan.id}`)}`,
+                                )
                             }
 
                             const ctaLabel = plan.isStatic
                                 ? 'Contact Sales'
                                 : isFree
-                                    ? 'Start Free'
-                                    : authenticated ? 'Get Started' : 'Get Started'
+                                  ? 'Start Free'
+                                  : authenticated
+                                    ? 'Get Started'
+                                    : 'Get Started'
 
                             return (
                                 <div
@@ -322,28 +414,46 @@ const Landing = () => {
                                         </div>
                                     )}
                                     <div className="text-center mb-6">
-                                        <h3 className="text-lg font-bold heading-text">{plan.name}</h3>
+                                        <h3 className="text-lg font-bold heading-text">
+                                            {plan.name}
+                                        </h3>
                                         {plan.desc || plan.description ? (
-                                            <p className="text-xs text-gray-400 mt-1">{plan.desc || plan.description}</p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                {plan.desc || plan.description}
+                                            </p>
                                         ) : null}
                                         <div className="mt-4">
                                             {plan.isStatic ? (
-                                                <span className="text-2xl font-extrabold heading-text">Custom</span>
+                                                <span className="text-2xl font-extrabold heading-text">
+                                                    Custom
+                                                </span>
                                             ) : (
                                                 <>
                                                     <span className="text-4xl font-extrabold heading-text">
-                                                        {isFree ? 'Free' : `₹${Number(plan.price).toLocaleString()}`}
+                                                        {isFree
+                                                            ? 'Free'
+                                                            : `₹${Number(plan.price).toLocaleString()}`}
                                                     </span>
-                                                    {!isFree && plan.duration_days && (
-                                                        <span className="text-sm text-gray-400 ml-1">/ {plan.duration_days}d</span>
-                                                    )}
+                                                    {!isFree &&
+                                                        plan.duration_days && (
+                                                            <span className="text-sm text-gray-400 ml-1">
+                                                                /{' '}
+                                                                {
+                                                                    plan.duration_days
+                                                                }
+                                                                d
+                                                            </span>
+                                                        )}
                                                 </>
                                             )}
                                         </div>
                                     </div>
                                     <ul className="space-y-3 mb-8">
                                         {(plan.features || []).map((f, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                            <li
+                                                key={i}
+                                                className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300"
+                                            >
                                                 <TbCheck className="text-emerald-500 mt-0.5 shrink-0" />
                                                 <span>{f}</span>
                                             </li>
@@ -389,11 +499,19 @@ const Landing = () => {
                                 </p>
                                 <div className="flex items-center gap-3 border-t border-gray-100 dark:border-gray-700 pt-4">
                                     <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center">
-                                        {t.name.split(' ').map((w) => w[0]).join('').substring(0, 2)}
+                                        {t.name
+                                            .split(' ')
+                                            .map((w) => w[0])
+                                            .join('')
+                                            .substring(0, 2)}
                                     </div>
                                     <div>
-                                        <div className="font-semibold text-sm heading-text">{t.name}</div>
-                                        <div className="text-xs text-gray-400">{t.role}</div>
+                                        <div className="font-semibold text-sm heading-text">
+                                            {t.name}
+                                        </div>
+                                        <div className="text-xs text-gray-400">
+                                            {t.role}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -412,7 +530,9 @@ const Landing = () => {
                                 Ready to Ace Your Next Exam?
                             </h2>
                             <p className="text-white/80 max-w-lg mx-auto mb-8">
-                                Join thousands of students already practicing and improving their scores. Start with free quizzes today.
+                                Join thousands of students already practicing
+                                and improving their scores. Start with free
+                                quizzes today.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <button

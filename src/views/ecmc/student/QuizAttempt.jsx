@@ -576,7 +576,6 @@ const QuizAttempt = () => {
                                     {/* Question text */}
                                     <MathContent
                                         html={wrapper.question?.question_text}
-                                        as="div"
                                         className="prose prose-sm dark:prose-invert max-w-full mb-5 text-base leading-relaxed"
                                     />
 

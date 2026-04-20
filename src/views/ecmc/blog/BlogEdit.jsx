@@ -23,9 +23,15 @@ const BlogEdit = () => {
             try {
                 const res = await apiGetBlog(id)
                 const blog = res?.data?.data || res?.data || res
+                // Normalize content (legacy posts might have it stored as object)
+                let content = blog.content
+                if (content && typeof content === 'object') {
+                    content = content.html ?? ''
+                }
                 // Map category and tags to Select format
                 setInitialValues({
                     ...blog,
+                    content: content ?? '',
                     category_id: blog.category
                         ? { value: blog.category.id, label: blog.category.name }
                         : null,

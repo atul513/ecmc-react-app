@@ -1,17 +1,18 @@
 import LegalPageLayout from './LegalPageLayout'
+import { APP_NAME } from '@/constants/app.constant'
 
 const RefundPolicy = () => {
     return (
-        <LegalPageLayout title="Refund Policy" description="Read our refund and cancellation policy for ECMC subscriptions and plans." canonical="/refund-policy" lastUpdated="March 24, 2026">
+        <LegalPageLayout title="Refund Policy" description={`Read our refund and cancellation policy for ${APP_NAME} subscriptions and plans.`} canonical="/refund-policy" lastUpdated="March 24, 2026">
             <p>
-                This Refund Policy outlines the conditions under which ECMC processes
+                This Refund Policy outlines the conditions under which {APP_NAME} processes
                 refunds for subscription plans and paid services.
             </p>
 
             <section>
                 <h2 className="text-xl font-semibold heading-text">1. Subscription Plans</h2>
                 <p>
-                    ECMC offers monthly and annual subscription plans for schools. All
+                    {APP_NAME} offers monthly and annual subscription plans for schools. All
                     subscriptions are billed in advance.
                 </p>
             </section>

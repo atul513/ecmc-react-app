@@ -10,6 +10,7 @@ import {
     TbBook, TbClipboardList, TbClock, TbLoader, TbAlertCircle,
     TbLock, TbStar, TbChevronRight,
 } from 'react-icons/tb'
+import { APP_NAME } from '@/constants/app.constant'
 
 const AccessBadge = ({ type }) =>
     type === 'free' ? (
@@ -154,7 +155,7 @@ const PublicHome = () => {
         <main className="w-full text-base min-h-screen bg-gray-50 dark:bg-gray-900">
             <SEO
                 title="Explore Exams & Practice Sets"
-                description="Browse free and premium online exams, quizzes and practice sets. Start practising today on ECMC."
+                description={`Browse free and premium online exams, quizzes and practice sets. Start practising today on ${APP_NAME}.`}
                 canonical="/home"
             />
             <NavigationBar toggleMode={toggleMode} mode={mode} />

@@ -111,7 +111,11 @@ const BlogForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
         const payload = {
             ...values,
             category_id: values.category_id?.value || values.category_id || null,
-            tags: values.tags?.map((t) => t.value || t) || [],
+            // Backend expects tags as array of strings (names)
+            tags: values.tags?.map((t) => {
+                if (typeof t === 'string') return t
+                return t.label ?? t.name ?? String(t.value ?? '')
+            }).filter(Boolean) || [],
         }
         onSubmit(payload)
     }
@@ -176,8 +180,8 @@ const BlogForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
                                     render={({ field }) => (
                                         <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                                             <RichTextEditor
-                                                content={field.value}
-                                                onChange={field.onChange}
+                                                content={typeof field.value === 'object' ? (field.value?.html ?? '') : (field.value ?? '')}
+                                                onChange={(val) => field.onChange(typeof val === 'object' ? (val?.html ?? '') : (val ?? ''))}
                                             />
                                         </div>
                                     )}

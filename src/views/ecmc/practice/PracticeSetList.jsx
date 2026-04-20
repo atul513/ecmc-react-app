@@ -72,6 +72,7 @@ const PracticeSetList = () => {
     const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null })
     const [shareItem, setShareItem] = useState(null)
     const [actionLoading, setActionLoading] = useState(null)
+    const [shareItem, setShareItem] = useState(null)
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -218,6 +219,9 @@ const PracticeSetList = () => {
                                                                     loading={actionLoading === s.id}
                                                                     onClick={() => handlePublish(s)} />
                                                             )}
+                                                            <Button size="xs" variant="plain" className="text-blue-500"
+                                                                icon={<TbShare />}
+                                                                onClick={() => setShareItem(s)} />
                                                             <Button size="xs" variant="plain" className="text-red-500"
                                                                 icon={<TbTrash />}
                                                                 onClick={() => setDeleteDialog({ open: true, item: s })} />
@@ -261,6 +265,16 @@ const PracticeSetList = () => {
                     <Button variant="solid" className="bg-red-500 hover:bg-red-600" onClick={confirmDelete}>Delete</Button>
                 </div>
             </Dialog>
+
+            {shareItem && (
+                <ShareInvitePanel
+                    isOpen={!!shareItem}
+                    onClose={() => setShareItem(null)}
+                    contentType="practice_set"
+                    contentId={shareItem.id}
+                    contentTitle={shareItem.title}
+                />
+            )}
         </Container>
     )
 }

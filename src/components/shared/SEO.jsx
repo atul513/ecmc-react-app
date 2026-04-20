@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async'
+import { APP_NAME } from '@/constants/app.constant'
 
-const SITE_NAME = 'ECMC'
+const SITE_NAME = APP_NAME
 const BASE_URL = 'https://test.store4robo.com'
 const DEFAULT_IMAGE = `${BASE_URL}/img/og-default.png`
 const DEFAULT_DESC = 'Smart platform for online exams, quizzes and practice sets — for students, teachers and institutions.'

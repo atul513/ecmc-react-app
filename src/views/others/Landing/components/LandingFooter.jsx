@@ -1,9 +1,13 @@
 import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 import { Link } from 'react-router'
 import {
-    TbBrandFacebook, TbBrandTwitter, TbBrandInstagram,
-    TbBrandLinkedin, TbBrandYoutube,
+    TbBrandFacebook,
+    TbBrandTwitter,
+    TbBrandInstagram,
+    TbBrandLinkedin,
+    TbBrandYoutube,
 } from 'react-icons/tb'
+import { APP_NAME } from '@/constants/app.constant'
 
 const footerLinks = [
     {
@@ -53,14 +57,26 @@ const LandingFooter = ({ mode }) => {
                     <div className="md:col-span-4 flex flex-col gap-4">
                         <a href="/landing">
                             {mode === MODE_LIGHT && (
-                                <img src="/img/logo/logo-light-full.png" width={120} height={40} alt="logo" />
+                                <img
+                                    src="/img/logo/logo-light-full.png"
+                                    width={120}
+                                    height={40}
+                                    alt="logo"
+                                />
                             )}
                             {mode === MODE_DARK && (
-                                <img src="/img/logo/logo-dark-full.png" width={120} height={40} alt="logo" />
+                                <img
+                                    src="/img/logo/logo-dark-full.png"
+                                    width={120}
+                                    height={40}
+                                    alt="logo"
+                                />
                             )}
                         </a>
                         <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">
-                            The smart platform for online exams, quizzes, and practice sets. Built for students, teachers, and institutions.
+                            The smart platform for online exams, quizzes, and
+                            practice sets. Built for students, teachers, and
+                            institutions.
                         </p>
                         {/* Social media */}
                         <div className="flex items-center gap-2 mt-2">
@@ -81,8 +97,13 @@ const LandingFooter = ({ mode }) => {
 
                     {/* Link columns */}
                     {footerLinks.map((col) => (
-                        <div key={col.heading} className="md:col-span-2 flex flex-col gap-3">
-                            <h4 className="text-sm font-semibold heading-text">{col.heading}</h4>
+                        <div
+                            key={col.heading}
+                            className="md:col-span-2 flex flex-col gap-3"
+                        >
+                            <h4 className="text-sm font-semibold heading-text">
+                                {col.heading}
+                            </h4>
                             <ul className="flex flex-col gap-2.5">
                                 {col.links.map((link) => (
                                     <li key={link.label}>
@@ -100,7 +121,9 @@ const LandingFooter = ({ mode }) => {
 
                     {/* Newsletter / App download placeholder */}
                     <div className="md:col-span-2 flex flex-col gap-3">
-                        <h4 className="text-sm font-semibold heading-text">Get the App</h4>
+                        <h4 className="text-sm font-semibold heading-text">
+                            Get the App
+                        </h4>
                         <p className="text-xs text-gray-400">Coming soon on</p>
                         <div className="flex flex-col gap-2">
                             <div className="bg-gray-200 dark:bg-gray-700 rounded-lg px-3 py-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
@@ -116,12 +139,28 @@ const LandingFooter = ({ mode }) => {
                 {/* Copyright */}
                 <div className="pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <p className="text-sm text-gray-400">
-                        Copyright &copy; {year} ECMC. All rights reserved.
+                        Copyright &copy; {year} <b>{APP_NAME}</b>. All rights
+                        reserved.
                     </p>
                     <div className="flex items-center gap-4 text-sm text-gray-400">
-                        <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
-                        <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
-                        <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
+                        <Link
+                            to="/terms"
+                            className="hover:text-primary transition-colors"
+                        >
+                            Terms
+                        </Link>
+                        <Link
+                            to="/privacy"
+                            className="hover:text-primary transition-colors"
+                        >
+                            Privacy
+                        </Link>
+                        <Link
+                            to="/contact"
+                            className="hover:text-primary transition-colors"
+                        >
+                            Contact
+                        </Link>
                     </div>
                 </div>
             </div>

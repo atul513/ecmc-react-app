@@ -47,7 +47,7 @@ const renderRawLatex = (html) => {
  * - Delimited math ($...$, $$...$$, \(...\), \[...\]): rendered via KaTeX auto-render
  * - Plain HTML: rendered as-is
  */
-const MathContent = ({ html, className = '', as: Tag = 'span' }) => {
+const MathContent = ({ html, className = '', as: Tag = 'div' }) => {
     const ref = useRef(null)
     const raw = isRawLatex(html)
 
@@ -58,7 +58,7 @@ const MathContent = ({ html, className = '', as: Tag = 'span' }) => {
             if (cancelled || !ref.current) return
             try {
                 render(ref.current, { delimiters: DELIMITERS, throwOnError: false })
-            } catch (_) { /* ignore */ }
+            } catch { /* ignore */ }
         })
         return () => { cancelled = true }
     }, [html, raw])

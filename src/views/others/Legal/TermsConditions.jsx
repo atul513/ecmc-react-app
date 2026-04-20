@@ -1,12 +1,13 @@
 import LegalPageLayout from './LegalPageLayout'
+import { APP_NAME } from '@/constants/app.constant'
 
 const TermsConditions = () => {
     return (
-        <LegalPageLayout title="Terms &amp; Conditions" description="Read the terms and conditions for using the ECMC online exam platform." canonical="/terms" lastUpdated="March 24, 2026">
+        <LegalPageLayout title="Terms &amp; Conditions" description={`Read the terms and conditions for using the ${APP_NAME} online exam platform.`} canonical="/terms" lastUpdated="March 24, 2026">
             <section>
                 <h2 className="text-xl font-semibold heading-text">1. Acceptance of Terms</h2>
                 <p>
-                    By accessing or using ECMC ("the Platform"), you agree to be bound by
+                    By accessing or using {APP_NAME} ("the Platform"), you agree to be bound by
                     these Terms & Conditions. If you do not agree to all the terms, you may
                     not use the Platform.
                 </p>
@@ -39,7 +40,7 @@ const TermsConditions = () => {
                 <h2 className="text-xl font-semibold heading-text">4. Intellectual Property</h2>
                 <p>
                     All content, trademarks, and software on the Platform are the property
-                    of ECMC or its licensors. You may not reproduce, distribute, or create
+                    of {APP_NAME} or its licensors. You may not reproduce, distribute, or create
                     derivative works without prior written consent.
                 </p>
             </section>
@@ -47,7 +48,7 @@ const TermsConditions = () => {
             <section>
                 <h2 className="text-xl font-semibold heading-text">5. Limitation of Liability</h2>
                 <p>
-                    ECMC is not liable for any indirect, incidental, or consequential
+                    {APP_NAME} is not liable for any indirect, incidental, or consequential
                     damages arising from your use of the Platform. The Platform is provided
                     "as is" without warranties of any kind.
                 </p>

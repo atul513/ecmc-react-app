@@ -7,6 +7,7 @@ import {
     PiHouseLineDuotone,
     PiArrowRightBold,
 } from 'react-icons/pi'
+import { APP_NAME } from '@/constants/app.constant'
 
 const features = [
     {
@@ -42,8 +43,8 @@ const Landing = () => {
                     The Smart Platform for Modern Education
                 </h1>
                 <p className="text-lg text-gray-500 dark:text-gray-400 mb-10 max-w-xl">
-                    ECMC connects students, teachers, parents, and administrators
-                    in one unified school management system.
+                    ECMC connects students, teachers, parents, and
+                    administrators in one unified school management system.
                 </p>
                 <div className="flex gap-4">
                     {authenticated ? (
@@ -86,7 +87,9 @@ const Landing = () => {
                             className="flex flex-col items-start gap-3 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                         >
                             {f.icon}
-                            <h3 className="font-bold heading-text">{f.title}</h3>
+                            <h3 className="font-bold heading-text">
+                                {f.title}
+                            </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {f.desc}
                             </p>
@@ -102,7 +105,7 @@ const Landing = () => {
                         Ready to get started?
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 mb-8">
-                        Join thousands of schools already using ECMC.
+                        Join thousands of schools already using {APP_NAME}.
                     </p>
                     <Link
                         to="/sign-up"
@@ -116,7 +119,7 @@ const Landing = () => {
 
             {/* Footer */}
             <footer className="py-8 text-center text-sm text-gray-400 border-t border-gray-200 dark:border-gray-700">
-                © {new Date().getFullYear()} ECMC. All rights reserved.
+                © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
             </footer>
         </div>
     )
