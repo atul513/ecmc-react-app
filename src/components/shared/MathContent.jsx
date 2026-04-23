@@ -1,82 +1,118 @@
-import { useEffect, useRef } from 'react'
+import { useMemo } from 'react'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 
-// ─── Auto-render for delimited math ($...$, $$...$$, \(...\), \[...\]) ─────────
-let _renderMathInElement = null
-const getAutoRender = async () => {
-    if (!_renderMathInElement) {
-        const m = await import('katex/dist/contrib/auto-render')
-        _renderMathInElement = m.default
-    }
-    return _renderMathInElement
-}
-
-const DELIMITERS = [
-    { left: '$$', right: '$$', display: true },
-    { left: '$', right: '$', display: false },
-    { left: '\\(', right: '\\)', display: false },
-    { left: '\\[', right: '\\]', display: true },
-]
-
-// ─── Detect raw LaTeX (no $ delimiters, but contains LaTeX commands) ──────────
+// ─── LaTeX commands we auto-detect when there are no delimiters ──────────────
 const RAW_LATEX_RE = /\\(?:frac|sqrt|int|sum|prod|lim|infty|alpha|beta|gamma|delta|theta|pi|sigma|omega|partial|nabla|cdot|times|div|pm|mp|leq|geq|neq|approx|sim|equiv|text|mathrm|mathbf|vec|hat|bar|dot|overline|underline|left|right|begin|end|forall|exists|cup|cap|subset|supset|mathbb|binom|pmatrix|vmatrix|cases)/
 
-const isRawLatex = (html) => {
-    if (!html) return false
-    // Strip HTML tags to get raw text
-    const text = html.replace(/<[^>]+>/g, '').trim()
-    // Already has delimiters → let auto-render handle it
-    if (text.includes('$') || text.includes('\\(') || text.includes('\\[')) return false
-    return RAW_LATEX_RE.test(text)
+// ─── Render a single LaTeX expression to HTML ────────────────────────────────
+const renderTex = (tex, displayMode) => {
+    try {
+        return katex.renderToString(tex, {
+            throwOnError: false,
+            displayMode,
+            output: 'html',
+        })
+    } catch {
+        return tex
+    }
 }
 
-// ─── Render raw LaTeX as inline KaTeX HTML ────────────────────────────────────
-const renderRawLatex = (html) => {
-    const text = html.replace(/<[^>]+>/g, '').trim()
-    try {
-        return katex.renderToString(text, { throwOnError: false, displayMode: false, output: 'html' })
-    } catch {
+// ─── Process a string: replace $$..$$, $..$, \(..\), \[..\] with KaTeX HTML ──
+// Works on text content — we only apply it to text nodes, not inside HTML tags.
+const processMath = (str) => {
+    if (!str) return str
+    // Order matters: match longest/most specific delimiters first.
+    // $$...$$ (display)
+    let out = str.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => renderTex(tex, true))
+    // \[...\] (display)
+    out = out.replace(/\\\[([\s\S]+?)\\\]/g, (_, tex) => renderTex(tex, true))
+    // \(...\) (inline)
+    out = out.replace(/\\\(([\s\S]+?)\\\)/g, (_, tex) => renderTex(tex, false))
+    // $...$ (inline) — avoid matching across $$ which we already replaced,
+    // and don't match lone $ signs (require no whitespace next to delimiters).
+    out = out.replace(/(?<![\\$])\$(?!\s)([^\n$]+?)(?<!\s)\$(?!\d)/g, (_, tex) =>
+        renderTex(tex, false)
+    )
+    return out
+}
+
+// ─── Walk an HTML string and apply math processing only to text segments ─────
+// We can do this with a simple DOM parse. Since we're in a browser env.
+const processHtmlWithMath = (html) => {
+    if (!html) return ''
+
+    // If the whole string is raw LaTeX (no HTML tags, no $ delimiters, has commands)
+    const stripped = html.replace(/<[^>]+>/g, '').trim()
+    const hasDelims = /\$|\\\(|\\\[/.test(stripped)
+    const hasRawLatex = RAW_LATEX_RE.test(stripped)
+
+    if (!hasDelims && hasRawLatex) {
+        // Treat the entire stripped text as a single LaTeX expression
+        return renderTex(stripped, false)
+    }
+
+    if (!hasDelims) {
+        // No math at all — return as-is
         return html
+    }
+
+    // Parse as HTML and walk text nodes, replacing math in each
+    try {
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html')
+        const root = doc.body.firstChild
+
+        const walk = (node) => {
+            // Skip KaTeX-rendered nodes (already processed)
+            if (
+                node.nodeType === 1 &&
+                (node.classList?.contains('katex') ||
+                    node.classList?.contains('katex-display'))
+            ) {
+                return
+            }
+            if (node.nodeType === 3) {
+                // Text node
+                const text = node.textContent || ''
+                if (/\$|\\\(|\\\[/.test(text)) {
+                    const replaced = processMath(text)
+                    if (replaced !== text) {
+                        const span = doc.createElement('span')
+                        span.innerHTML = replaced
+                        node.parentNode.replaceChild(span, node)
+                    }
+                }
+                return
+            }
+            // Element — walk children (snapshot list since we may mutate)
+            if (node.childNodes) {
+                Array.from(node.childNodes).forEach(walk)
+            }
+        }
+        walk(root)
+        return root.innerHTML
+    } catch {
+        // Fallback: just process the string as-is (may double-render HTML)
+        return processMath(html)
     }
 }
 
 /**
- * Renders an HTML string with math support.
- * - Raw LaTeX (no delimiters): rendered directly via katex.renderToString
- * - Delimited math ($...$, $$...$$, \(...\), \[...\]): rendered via KaTeX auto-render
- * - Plain HTML: rendered as-is
+ * Renders an HTML string with inline math support.
+ * Supports: $$...$$ (display), $...$ (inline), \(...\), \[...\]
+ * Also handles raw LaTeX strings without delimiters (e.g. "\frac{a}{b}").
+ *
+ * Math is rendered synchronously via katex.renderToString, so the output
+ * is stable and unaffected by React re-renders.
  */
 const MathContent = ({ html, className = '', as: Tag = 'div' }) => {
-    const ref = useRef(null)
-    const raw = isRawLatex(html)
-
-    useEffect(() => {
-        if (raw || !ref.current || !html) return
-        let cancelled = false
-        getAutoRender().then((render) => {
-            if (cancelled || !ref.current) return
-            try {
-                render(ref.current, { delimiters: DELIMITERS, throwOnError: false })
-            } catch { /* ignore */ }
-        })
-        return () => { cancelled = true }
-    }, [html, raw])
-
-    if (raw) {
-        return (
-            <Tag
-                className={className}
-                dangerouslySetInnerHTML={{ __html: renderRawLatex(html) }}
-            />
-        )
-    }
+    const rendered = useMemo(() => processHtmlWithMath(html), [html])
 
     return (
         <Tag
-            ref={ref}
             className={className}
-            dangerouslySetInnerHTML={{ __html: html || '' }}
+            dangerouslySetInnerHTML={{ __html: rendered }}
         />
     )
 }
