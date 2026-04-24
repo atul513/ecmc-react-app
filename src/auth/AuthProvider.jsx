@@ -70,11 +70,11 @@ function AuthProvider({ children }) {
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const ROLE_ENTRY_PATHS = {
-        superadmin: '/ecmc/superadmin/dashboard',
-        admin:      '/ecmc/admin/dashboard',
-        teacher:    '/ecmc/teacher/dashboard',
-        student:    '/ecmc/student/dashboard',
-        parent:     '/ecmc/parent/dashboard',
+        superadmin: '/app/superadmin/dashboard',
+        admin:      '/app/admin/dashboard',
+        teacher:    '/app/teacher/dashboard',
+        student:    '/app/student/dashboard',
+        parent:     '/app/parent/dashboard',
     }
 
     const normalizeUser = (user) => {

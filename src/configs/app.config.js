@@ -1,6 +1,6 @@
 const appConfig = {
     apiPrefix: import.meta.env.VITE_API_BASE_URL || '/api',
-    authenticatedEntryPath: '/ecmc/admin/dashboard',
+    authenticatedEntryPath: '/app/admin/dashboard',
     unAuthenticatedEntryPath: '/landing',
     locale: 'en',
     accessTokenPersistStrategy: 'cookies',

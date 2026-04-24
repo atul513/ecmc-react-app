@@ -9,6 +9,7 @@ import Notification from '@/components/ui/Notification'
 import Dialog from '@/components/ui/Dialog'
 import toast from '@/components/ui/toast'
 import { apiGetMyQuizzes, apiCheckQuizAccess, apiStartQuiz } from '@/services/QuizService'
+import { apiGetMySubscription } from '@/services/PlanService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
 import {
     TbSearch, TbPlayerPlay, TbLock, TbClock,
@@ -17,6 +18,12 @@ import {
 
 const stripHtml = (html) => (html || '').replace(/<[^>]+>/g, '').trim()
 const DESC_LIMIT = 80
+
+const isExplicitFalse = (value) =>
+    value === false || value === 0 || value === '0' || value === 'false'
+
+const isExplicitTrue = (value) =>
+    value === true || value === 1 || value === '1' || value === 'true'
 
 const DescriptionText = ({ html }) => {
     const [expanded, setExpanded] = useState(false)
@@ -137,6 +144,7 @@ const MyQuizzes = () => {
     const [quizzes, setQuizzes] = useState([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
+    const [subscription, setSubscription] = useState(null)
     const [selectedQuiz, setSelectedQuiz] = useState(null)  // quiz shown in instructions modal
     const [starting, setStarting] = useState(false)
 
@@ -144,8 +152,12 @@ const MyQuizzes = () => {
         const load = async () => {
             setLoading(true)
             try {
-                const res = await apiGetMyQuizzes()
-                setQuizzes(res?.data || [])
+                const [quizRes, subscriptionRes] = await Promise.all([
+                    apiGetMyQuizzes(),
+                    apiGetMySubscription().catch(() => null),
+                ])
+                setQuizzes(quizRes?.data || [])
+                setSubscription(subscriptionRes?.data || null)
             } catch {
                 toast.push(<Notification type="danger" title="Failed to load quizzes" />, { placement: 'top-center' })
             } finally {
@@ -158,6 +170,15 @@ const MyQuizzes = () => {
     const filtered = quizzes.filter((q) =>
         q.title?.toLowerCase().includes(search.toLowerCase())
     )
+
+    const hasActiveSubscription = subscription?.status === 'active'
+
+    const quizHasAccess = (quiz) => {
+        if (quiz.access_type !== 'paid') return true
+        if (isExplicitTrue(quiz.has_access)) return true
+        if (isExplicitFalse(quiz.has_access)) return false
+        return hasActiveSubscription
+    }
 
     // Step 1: check access → open instructions modal
     const handleOpenInstructions = async (quiz) => {
@@ -264,7 +285,7 @@ const MyQuizzes = () => {
                                             Attempts used: {quiz.attempts_used} / {quiz.max_attempts}
                                         </div>
                                     )}
-                                    {quiz.access_type === 'paid' && !quiz.has_access ? (
+                                    {quiz.access_type === 'paid' && !quizHasAccess(quiz) ? (
                                         <Button
                                             variant="solid"
                                             size="sm"

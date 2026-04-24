@@ -18,7 +18,7 @@ import {
 import {
     TbSearch, TbTrash, TbEye, TbMail, TbMailOpened,
     TbMailCheck, TbFilter, TbRefresh, TbInbox, TbX,
-    TbUser, TbCalendar, TbTag,
+    TbUser, TbCalendar, TbTag, TbHash, TbClockHour4,
 } from 'react-icons/tb'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -118,6 +118,23 @@ const DetailDialog = ({ id, onClose, onStatusChange, onDelete }) => {
                         {item.message}
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                            <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                                <TbHash size={12} /> Submission ID
+                            </p>
+                            <p className="font-medium text-gray-800 dark:text-gray-100">{item.id}</p>
+                        </div>
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                            <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                                <TbClockHour4 size={12} /> Received At
+                            </p>
+                            <p className="font-medium text-gray-800 dark:text-gray-100">
+                                {dayjs(item.created_at).format('DD MMM YYYY, hh:mm A')}
+                            </p>
+                        </div>
+                    </div>
+
                     {/* Status + actions */}
                     <div className="flex items-center justify-between gap-3 pt-1 border-t border-gray-100 dark:border-gray-700">
                         <div className="flex items-center gap-2">
@@ -176,9 +193,8 @@ const ContactSubmissions = () => {
                 search: search || undefined,
                 status: statusFilter || undefined,
             })
-            const d = res?.data ?? res
-            setItems(d?.data ?? [])
-            setTotal(d?.total ?? 0)
+            setItems(res?.data ?? [])
+            setTotal(res?.total ?? 0)
         } catch {
             toast.push(<Notification type="danger" title="Failed to load submissions" />, { placement: 'top-center' })
         } finally {

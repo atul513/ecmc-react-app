@@ -248,6 +248,16 @@ const ecmcNavigationConfig = [
                     },
                 ],
             },
+            {
+                key: 'ecmc.admin.contact-submissions',
+                path: `${ECMC_PREFIX_PATH}/admin/contact-submissions`,
+                title: 'Contact Requests',
+                translateKey: 'nav.ecmc.admin.contactSubmissions',
+                icon: 'mail',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [ADMIN, SUPERADMIN],
+                subMenu: [],
+            },
         ],
     },
 

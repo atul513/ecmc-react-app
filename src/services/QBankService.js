@@ -96,6 +96,14 @@ export async function apiImportQuestions(formData) {
         headers: { 'Content-Type': 'multipart/form-data' },
     })
 }
+export async function apiImportQuestionsJson(formData) {
+    return ApiService.fetchDataWithAxios({
+        url: `${BASE}/questions/import-json`,
+        method: 'post',
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+    })
+}
 export async function apiGetImportStatus(batchId) {
     return ApiService.fetchDataWithAxios({ url: `${BASE}/questions/import/${batchId}/status`, method: 'get' })
 }

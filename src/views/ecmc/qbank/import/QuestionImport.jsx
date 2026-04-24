@@ -13,6 +13,7 @@ const { THead, TBody, Tr, Th, Td } = Table
 import {
     apiDownloadImportTemplate,
     apiImportQuestions,
+    apiImportQuestionsJson,
     apiGetImportStatus,
     apiGetImportErrors,
     apiGetImportBatches,
@@ -20,9 +21,10 @@ import {
     apiGetSubjects,
     apiGetTopics,
 } from '@/services/QBankService'
+import Dialog from '@/components/ui/Dialog'
 import {
     TbDownload, TbUpload, TbRefresh, TbTrash, TbCircleCheck,
-    TbAlertCircle, TbFileSpreadsheet, TbX,
+    TbAlertCircle, TbFileSpreadsheet, TbX, TbBraces,
 } from 'react-icons/tb'
 
 const BATCH_STATUS_COLORS = {
@@ -187,6 +189,187 @@ const TemplateDialog = ({ onClose }) => {
     )
 }
 
+// ─── JSON Import Dialog ────────────────────────────────────────────────────────
+
+const JsonImportDialog = ({ onClose, onSuccess }) => {
+    const [subjects, setSubjects] = useState([])
+    const [topics, setTopics] = useState([])
+    const [selectedSubject, setSelectedSubject] = useState(null)
+    const [selectedTopic, setSelectedTopic] = useState(null)
+    const [subjectsLoading, setSubjectsLoading] = useState(true)
+    const [topicsLoading, setTopicsLoading] = useState(false)
+    const [file, setFile] = useState(null)
+    const [uploading, setUploading] = useState(false)
+    const jsonFileRef = useRef(null)
+
+    useEffect(() => {
+        apiGetSubjects({ per_page: 200 })
+            .then((res) => {
+                const list = res?.data?.data || res?.data || []
+                setSubjects(list.map((s) => ({ value: s.id, label: s.name })))
+            })
+            .catch(() => {})
+            .finally(() => setSubjectsLoading(false))
+    }, [])
+
+    useEffect(() => {
+        if (!selectedSubject) { setTopics([]); setSelectedTopic(null); return }
+        setTopicsLoading(true)
+        apiGetTopics(selectedSubject.value, { per_page: 200 })
+            .then((res) => {
+                const list = res?.data?.data || res?.data || []
+                setTopics(list.map((t) => ({ value: t.id, label: t.name })))
+            })
+            .catch(() => setTopics([]))
+            .finally(() => setTopicsLoading(false))
+        setSelectedTopic(null)
+    }, [selectedSubject])
+
+    const handleFileChange = (e) => {
+        const f = e.target.files?.[0]
+        if (!f) return
+        if (!f.name.toLowerCase().endsWith('.json')) {
+            toast.push(<Notification type="warning" title="Please select a .json file" />, { placement: 'top-center' })
+            return
+        }
+        if (f.size > 20 * 1024 * 1024) {
+            toast.push(<Notification type="warning" title="File too large (max 20MB)" />, { placement: 'top-center' })
+            return
+        }
+        setFile(f)
+    }
+
+    const handleUpload = async () => {
+        if (!selectedSubject) {
+            toast.push(<Notification type="warning" title="Please select a subject" />, { placement: 'top-center' })
+            return
+        }
+        if (!selectedTopic) {
+            toast.push(<Notification type="warning" title="Please select a topic" />, { placement: 'top-center' })
+            return
+        }
+        if (!file) {
+            toast.push(<Notification type="warning" title="Please select a JSON file" />, { placement: 'top-center' })
+            return
+        }
+        setUploading(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('subject_id', String(selectedSubject.value))
+            formData.append('topic_id', String(selectedTopic.value))
+            const res = await apiImportQuestionsJson(formData)
+            toast.push(
+                <Notification type="success" title={res?.message || 'JSON import started'} />,
+                { placement: 'top-center' }
+            )
+            if (onSuccess) onSuccess(res)
+            onClose()
+        } catch (err) {
+            const msg = err?.response?.data?.message || 'Upload failed'
+            toast.push(<Notification type="danger" title={msg} />, { placement: 'top-center' })
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    return (
+        <div className="flex flex-col gap-4 p-2">
+            <div>
+                <h5 className="text-lg font-semibold flex items-center gap-2">
+                    <TbBraces className="text-primary" /> Import Questions from JSON
+                </h5>
+                <p className="text-sm text-gray-500 mt-1">
+                    Select the subject and topic, then upload your <code className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">.json</code> file (max 20MB).
+                </p>
+            </div>
+
+            {/* Subject */}
+            <div>
+                <label className="block text-sm font-medium mb-1">
+                    Subject <span className="text-red-500">*</span>
+                </label>
+                <Select
+                    options={subjects}
+                    value={selectedSubject}
+                    onChange={setSelectedSubject}
+                    placeholder={subjectsLoading ? 'Loading...' : 'Select a subject'}
+                    isLoading={subjectsLoading}
+                    isDisabled={subjectsLoading}
+                />
+            </div>
+
+            {/* Topic */}
+            <div>
+                <label className="block text-sm font-medium mb-1">
+                    Topic <span className="text-red-500">*</span>
+                </label>
+                <Select
+                    options={topics}
+                    value={selectedTopic}
+                    onChange={setSelectedTopic}
+                    placeholder={
+                        !selectedSubject
+                            ? 'Select subject first'
+                            : topicsLoading
+                            ? 'Loading...'
+                            : topics.length === 0
+                            ? 'No topics found'
+                            : 'Select a topic'
+                    }
+                    isLoading={topicsLoading}
+                    isDisabled={!selectedSubject || topicsLoading}
+                />
+                <p className="text-[11px] text-gray-400 mt-1">Must belong to the selected subject</p>
+            </div>
+
+            {/* File upload */}
+            <div>
+                <label className="block text-sm font-medium mb-1">
+                    JSON File <span className="text-red-500">*</span>
+                </label>
+                <div
+                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => jsonFileRef.current?.click()}
+                >
+                    <TbBraces className="text-3xl text-gray-400 mx-auto mb-2" />
+                    {file ? (
+                        <div>
+                            <p className="font-medium text-gray-700 dark:text-gray-300 truncate">{file.name}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                                {(file.size / 1024).toFixed(1)} KB
+                            </p>
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 text-sm">Click to select a .json file</p>
+                    )}
+                    <input
+                        ref={jsonFileRef}
+                        type="file"
+                        accept=".json,application/json"
+                        className="hidden"
+                        onChange={handleFileChange}
+                    />
+                </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 mt-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <Button onClick={onClose} disabled={uploading}>Cancel</Button>
+                <Button
+                    variant="solid"
+                    icon={<TbUpload />}
+                    loading={uploading}
+                    onClick={handleUpload}
+                    disabled={!file || !selectedSubject || !selectedTopic}
+                >
+                    Import JSON
+                </Button>
+            </div>
+        </div>
+    )
+}
+
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 const QuestionImport = () => {
@@ -202,6 +385,7 @@ const QuestionImport = () => {
     const [errors, setErrors] = useState([])
     const [errorsOpen, setErrorsOpen] = useState(false)
     const [showTemplateDialog, setShowTemplateDialog] = useState(false)
+    const [showJsonDialog, setShowJsonDialog] = useState(false)
 
     const loadBatches = async () => {
         setBatchLoading(true)
@@ -293,14 +477,23 @@ const QuestionImport = () => {
     return (
         <Container>
             <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
                         <h3 className="text-xl font-semibold">Import Questions</h3>
-                        <p className="text-sm text-gray-500 mt-1">Bulk import questions from Excel (.xlsx)</p>
+                        <p className="text-sm text-gray-500 mt-1">Bulk import questions from Excel or JSON</p>
                     </div>
-                    <Button icon={<TbDownload />} onClick={() => setShowTemplateDialog(true)}>
-                        Download Template
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button icon={<TbDownload />} onClick={() => setShowTemplateDialog(true)}>
+                            Download Template
+                        </Button>
+                        <Button
+                            variant="solid"
+                            icon={<TbBraces />}
+                            onClick={() => setShowJsonDialog(true)}
+                        >
+                            Import JSON
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Upload Card */}
@@ -510,6 +703,28 @@ const QuestionImport = () => {
             {showTemplateDialog && (
                 <TemplateDialog onClose={() => setShowTemplateDialog(false)} />
             )}
+
+            {/* JSON Import Dialog */}
+            <Dialog
+                isOpen={showJsonDialog}
+                onClose={() => setShowJsonDialog(false)}
+                onRequestClose={() => setShowJsonDialog(false)}
+                width={520}
+            >
+                {showJsonDialog && (
+                    <JsonImportDialog
+                        onClose={() => setShowJsonDialog(false)}
+                        onSuccess={(res) => {
+                            const batchId = res?.batch_id || res?.data?.batch_id
+                            if (batchId) {
+                                setActiveBatch({ id: batchId, status: 'pending', progress_percent: 0 })
+                                startPolling(batchId)
+                            }
+                            loadBatches()
+                        }}
+                    />
+                )}
+            </Dialog>
         </Container>
     )
 }

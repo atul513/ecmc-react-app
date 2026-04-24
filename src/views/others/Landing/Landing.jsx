@@ -166,7 +166,7 @@ const stats = [
 
 const Landing = () => {
     const navigate = useNavigate()
-    const { authenticated } = useAuth()
+    const { authenticated, user } = useAuth()
     const [isDark, setMode] = useDarkMode()
     const mode = isDark ? MODE_DARK : MODE_LIGHT
     const toggleMode = () =>
@@ -184,6 +184,14 @@ const Landing = () => {
 
     // Dynamic plans from API + static Institute plan at the end
     const pricingPlans = [...apiPlans, INSTITUTE_PLAN]
+    const role = user?.role ?? user?.authority?.[0]
+    const dashboardPath = {
+        superadmin: '/app/superadmin/dashboard',
+        admin: '/app/admin/dashboard',
+        teacher: '/app/teacher/dashboard',
+        student: '/app/student/dashboard',
+        parent: '/app/parent/dashboard',
+    }[role] || '/app/student/dashboard'
 
     const landingSchema = {
         '@context': 'https://schema.org',
@@ -226,9 +234,7 @@ const Landing = () => {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         {authenticated ? (
                             <button
-                                onClick={() =>
-                                    navigate('/ecmc/student/dashboard')
-                                }
+                                onClick={() => navigate(dashboardPath)}
                                 className="inline-flex items-center gap-2 bg-primary text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 text-base"
                             >
                                 Go to Dashboard <TbArrowRight />

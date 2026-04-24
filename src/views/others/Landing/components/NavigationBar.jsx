@@ -22,11 +22,11 @@ const navMenu = [
 ]
 
 const ROLE_DASHBOARD = {
-    superadmin: '/ecmc/superadmin/dashboard',
-    admin:      '/ecmc/admin/dashboard',
-    teacher:    '/ecmc/teacher/dashboard',
-    student:    '/ecmc/student/dashboard',
-    parent:     '/ecmc/parent/dashboard',
+    superadmin: '/app/superadmin/dashboard',
+    admin:      '/app/admin/dashboard',
+    teacher:    '/app/teacher/dashboard',
+    student:    '/app/student/dashboard',
+    parent:     '/app/parent/dashboard',
 }
 
 const Navigation = ({ toggleMode, mode }) => {

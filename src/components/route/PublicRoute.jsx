@@ -6,11 +6,11 @@ import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 const { authenticatedEntryPath } = appConfig
 
 const ROLE_ENTRY_PATHS = {
-    superadmin: '/ecmc/superadmin/dashboard',
-    admin: '/ecmc/admin/dashboard',
-    teacher: '/ecmc/teacher/dashboard',
-    student: '/ecmc/student/dashboard',
-    parent: '/ecmc/parent/dashboard',
+    superadmin: '/app/superadmin/dashboard',
+    admin: '/app/admin/dashboard',
+    teacher: '/app/teacher/dashboard',
+    student: '/app/student/dashboard',
+    parent: '/app/parent/dashboard',
 }
 
 const PublicRoute = () => {

@@ -1,17 +1,24 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import ReCAPTCHA from 'react-google-recaptcha'
 import LegalPageLayout from './LegalPageLayout'
-import { apiSubmitContact } from '@/services/ContactService'
-import { HiOutlineMail, HiOutlinePhone, HiOutlineLocationMarker } from 'react-icons/hi'
+import {
+    apiGetContactDetails,
+    apiSubmitContact,
+} from '@/services/ContactService'
+import {
+    HiOutlineMail,
+    HiOutlinePhone,
+    HiOutlineLocationMarker,
+} from 'react-icons/hi'
 import { TbCheck, TbSend } from 'react-icons/tb'
 import { APP_NAME } from '@/constants/app.constant'
 
 const schema = z.object({
-    name:    z.string().min(2, 'Name must be at least 2 characters').max(100),
-    email:   z.string().email('Please enter a valid email'),
+    name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+    email: z.string().email('Please enter a valid email'),
     subject: z.string().min(3, 'Subject must be at least 3 characters').max(200),
     message: z.string().min(10, 'Message must be at least 10 characters').max(5000),
 })
@@ -22,12 +29,22 @@ const inputClass =
     'w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors'
 const errorClass = 'text-xs text-red-500 mt-1'
 
+const defaultContactDetails = {
+    email: 'support@ecmc.com',
+    phone: '+1 (800) 000-0000',
+    phone_link: '+1800000000',
+    address_lines: ['123 School Lane, Suite 100', 'New York, NY 10001'],
+    response_time: 'Response within 24 hours',
+    working_hours: 'Mon-Fri, 9am-5pm',
+}
+
 const ContactUs = () => {
     const recaptchaRef = useRef(null)
     const [submitting, setSubmitting] = useState(false)
     const [success, setSuccess] = useState(false)
     const [serverError, setServerError] = useState('')
     const [captchaError, setCaptchaError] = useState('')
+    const [contactDetails, setContactDetails] = useState(defaultContactDetails)
 
     const {
         register,
@@ -36,11 +53,21 @@ const ContactUs = () => {
         formState: { errors },
     } = useForm({ resolver: zodResolver(schema) })
 
+    useEffect(() => {
+        apiGetContactDetails()
+            .then((res) => {
+                setContactDetails({
+                    ...defaultContactDetails,
+                    ...(res?.data || {}),
+                })
+            })
+            .catch(() => {})
+    }, [])
+
     const onSubmit = async (values) => {
         setServerError('')
         setCaptchaError('')
 
-        // Get reCAPTCHA token (if site key is configured)
         let recaptchaToken = 'no-recaptcha'
         if (SITE_KEY && recaptchaRef.current) {
             recaptchaToken = recaptchaRef.current.getValue()
@@ -52,14 +79,19 @@ const ContactUs = () => {
 
         setSubmitting(true)
         try {
-            await apiSubmitContact({ ...values, recaptcha_token: recaptchaToken })
+            await apiSubmitContact({
+                ...values,
+                recaptcha_token: recaptchaToken,
+            })
             setSuccess(true)
             reset()
             recaptchaRef.current?.reset()
         } catch (err) {
             const msg =
                 err?.response?.data?.message ||
-                Object.values(err?.response?.data?.errors || {}).flat().join(' ') ||
+                Object.values(err?.response?.data?.errors || {})
+                    .flat()
+                    .join(' ') ||
                 'Something went wrong. Please try again.'
             setServerError(msg)
             recaptchaRef.current?.reset()
@@ -69,23 +101,31 @@ const ContactUs = () => {
     }
 
     return (
-        <LegalPageLayout title="Contact Us" description={`Get in touch with the ${APP_NAME} team for support, sales enquiries or feedback.`} canonical="/contact">
+        <LegalPageLayout
+            title="Contact Us"
+            description={`Get in touch with the ${APP_NAME} team for support, sales enquiries or feedback.`}
+            canonical="/contact"
+        >
             <p>
-                Have a question, issue, or feedback? Our team is here to help. Reach
-                out through any of the channels below.
+                Have a question, issue, or feedback? Our team is here to help.
+                Reach out through any of the channels below.
             </p>
 
-            {/* Contact info cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 not-prose mt-4">
                 <div className="flex flex-col items-center text-center p-6 border border-gray-200 dark:border-gray-700 rounded-xl gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                         <HiOutlineMail size={22} />
                     </div>
                     <h3 className="font-semibold heading-text">Email</h3>
-                    <a href="mailto:support@ecmc.com" className="text-primary hover:underline text-sm">
-                        support@ecmc.com
+                    <a
+                        href={`mailto:${contactDetails.email}`}
+                        className="text-primary hover:underline text-sm"
+                    >
+                        {contactDetails.email}
                     </a>
-                    <p className="text-xs text-gray-500">Response within 24 hours</p>
+                    <p className="text-xs text-gray-500">
+                        {contactDetails.response_time}
+                    </p>
                 </div>
 
                 <div className="flex flex-col items-center text-center p-6 border border-gray-200 dark:border-gray-700 rounded-xl gap-3">
@@ -93,10 +133,15 @@ const ContactUs = () => {
                         <HiOutlinePhone size={22} />
                     </div>
                     <h3 className="font-semibold heading-text">Phone</h3>
-                    <a href="tel:+1800000000" className="text-primary hover:underline text-sm">
-                        +1 (800) 000-0000
+                    <a
+                        href={`tel:${contactDetails.phone_link}`}
+                        className="text-primary hover:underline text-sm"
+                    >
+                        {contactDetails.phone}
                     </a>
-                    <p className="text-xs text-gray-500">Mon–Fri, 9am–5pm</p>
+                    <p className="text-xs text-gray-500">
+                        {contactDetails.working_hours}
+                    </p>
                 </div>
 
                 <div className="flex flex-col items-center text-center p-6 border border-gray-200 dark:border-gray-700 rounded-xl gap-3">
@@ -105,14 +150,22 @@ const ContactUs = () => {
                     </div>
                     <h3 className="font-semibold heading-text">Office</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                        123 School Lane, Suite 100<br />New York, NY 10001
+                        {contactDetails.address_lines.map((line, index) => (
+                            <span key={index}>
+                                {line}
+                                {index < contactDetails.address_lines.length - 1 && (
+                                    <br />
+                                )}
+                            </span>
+                        ))}
                     </p>
                 </div>
             </div>
 
-            {/* Contact Form */}
             <section className="mt-8 not-prose">
-                <h2 className="text-xl font-semibold heading-text mb-4">Send Us a Message</h2>
+                <h2 className="text-xl font-semibold heading-text mb-4">
+                    Send Us a Message
+                </h2>
 
                 {success ? (
                     <div className="flex flex-col items-center gap-4 py-12 text-center border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-xl">
@@ -120,9 +173,12 @@ const ContactUs = () => {
                             <TbCheck className="text-green-600 dark:text-green-400 text-3xl" />
                         </div>
                         <div>
-                            <p className="font-semibold text-green-700 dark:text-green-400 text-lg">Message sent!</p>
+                            <p className="font-semibold text-green-700 dark:text-green-400 text-lg">
+                                Message sent!
+                            </p>
                             <p className="text-sm text-gray-500 mt-1">
-                                Thank you for contacting us. We'll get back to you within 24 hours.
+                                Thank you for contacting us. We'll get back to
+                                you within 24 hours.
                             </p>
                         </div>
                         <button
@@ -151,7 +207,9 @@ const ContactUs = () => {
                                     placeholder="Your full name"
                                     className={`${inputClass} ${errors.name ? 'border-red-400 ring-red-200' : ''}`}
                                 />
-                                {errors.name && <p className={errorClass}>{errors.name.message}</p>}
+                                {errors.name && (
+                                    <p className={errorClass}>{errors.name.message}</p>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium heading-text mb-1">
@@ -163,7 +221,9 @@ const ContactUs = () => {
                                     placeholder="you@example.com"
                                     className={`${inputClass} ${errors.email ? 'border-red-400 ring-red-200' : ''}`}
                                 />
-                                {errors.email && <p className={errorClass}>{errors.email.message}</p>}
+                                {errors.email && (
+                                    <p className={errorClass}>{errors.email.message}</p>
+                                )}
                             </div>
                         </div>
 
@@ -177,7 +237,9 @@ const ContactUs = () => {
                                 placeholder="How can we help?"
                                 className={`${inputClass} ${errors.subject ? 'border-red-400 ring-red-200' : ''}`}
                             />
-                            {errors.subject && <p className={errorClass}>{errors.subject.message}</p>}
+                            {errors.subject && (
+                                <p className={errorClass}>{errors.subject.message}</p>
+                            )}
                         </div>
 
                         <div>
@@ -190,14 +252,17 @@ const ContactUs = () => {
                                 placeholder="Describe your issue or question..."
                                 className={`${inputClass} resize-none ${errors.message ? 'border-red-400 ring-red-200' : ''}`}
                             />
-                            {errors.message && <p className={errorClass}>{errors.message.message}</p>}
+                            {errors.message && (
+                                <p className={errorClass}>{errors.message.message}</p>
+                            )}
                         </div>
 
-                        {/* reCAPTCHA — only rendered if site key is set */}
                         {SITE_KEY && (
                             <div>
                                 <ReCAPTCHA ref={recaptchaRef} sitekey={SITE_KEY} />
-                                {captchaError && <p className={errorClass}>{captchaError}</p>}
+                                {captchaError && (
+                                    <p className={errorClass}>{captchaError}</p>
+                                )}
                             </div>
                         )}
 
@@ -208,14 +273,31 @@ const ContactUs = () => {
                         >
                             {submitting ? (
                                 <>
-                                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                    <svg
+                                        className="animate-spin w-4 h-4"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        />
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v8H4z"
+                                        />
                                     </svg>
-                                    Sending…
+                                    Sending...
                                 </>
                             ) : (
-                                <><TbSend size={16} /> Send Message</>
+                                <>
+                                    <TbSend size={16} /> Send Message
+                                </>
                             )}
                         </button>
                     </form>

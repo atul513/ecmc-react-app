@@ -6,11 +6,11 @@ import { TbLoader, TbAlertCircle } from 'react-icons/tb'
 import { useState } from 'react'
 
 const ROLE_ENTRY_PATHS = {
-    superadmin: '/ecmc/superadmin/dashboard',
-    admin:      '/ecmc/admin/dashboard',
-    teacher:    '/ecmc/teacher/dashboard',
-    student:    '/ecmc/student/dashboard',
-    parent:     '/ecmc/parent/dashboard',
+    superadmin: '/app/superadmin/dashboard',
+    admin:      '/app/admin/dashboard',
+    teacher:    '/app/teacher/dashboard',
+    student:    '/app/student/dashboard',
+    parent:     '/app/parent/dashboard',
 }
 
 const GoogleCallback = () => {
@@ -48,7 +48,7 @@ const GoogleCallback = () => {
 
                 onSignIn({ accessToken: resp.token }, normalizedUser)
 
-                const entryPath = ROLE_ENTRY_PATHS[role] || '/ecmc/student/dashboard'
+                const entryPath = ROLE_ENTRY_PATHS[role] || '/app/student/dashboard'
                 navigate(entryPath, { replace: true })
             } catch (err) {
                 const msg = err?.response?.data?.message || 'Google sign-in failed. Please try again.'

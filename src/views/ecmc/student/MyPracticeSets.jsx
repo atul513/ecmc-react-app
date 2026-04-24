@@ -8,23 +8,35 @@ import Spinner from '@/components/ui/Spinner'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import { apiGetMyPracticeSets } from '@/services/PracticeSetService'
+import { apiGetMySubscription } from '@/services/PlanService'
 import { ECMC_PREFIX_PATH } from '@/constants/route.constant'
 import { TbSearch, TbPlayerPlay, TbLock, TbStar, TbBook } from 'react-icons/tb'
 
 const stripHtml = (html) => (html || '').replace(/<[^>]+>/g, '').trim()
+
+const isExplicitFalse = (value) =>
+    value === false || value === 0 || value === '0' || value === 'false'
+
+const isExplicitTrue = (value) =>
+    value === true || value === 1 || value === '1' || value === 'true'
 
 const MyPracticeSets = () => {
     const navigate = useNavigate()
     const [sets, setSets] = useState([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
+    const [subscription, setSubscription] = useState(null)
 
     useEffect(() => {
         const load = async () => {
             setLoading(true)
             try {
-                const res = await apiGetMyPracticeSets()
-                setSets(res?.data || [])
+                const [setsRes, subscriptionRes] = await Promise.all([
+                    apiGetMyPracticeSets(),
+                    apiGetMySubscription().catch(() => null),
+                ])
+                setSets(setsRes?.data || [])
+                setSubscription(subscriptionRes?.data || null)
             } catch {
                 toast.push(
                     <Notification type="danger" title="Failed to load practice sets" />,
@@ -40,6 +52,15 @@ const MyPracticeSets = () => {
     const filtered = sets.filter((s) =>
         s.title?.toLowerCase().includes(search.toLowerCase()),
     )
+
+    const hasActiveSubscription = subscription?.status === 'active'
+
+    const practiceSetHasAccess = (set) => {
+        if (set.access_type !== 'paid') return true
+        if (isExplicitTrue(set.has_access)) return true
+        if (isExplicitFalse(set.has_access)) return false
+        return hasActiveSubscription
+    }
 
     return (
         <Container>
@@ -123,7 +144,7 @@ const MyPracticeSets = () => {
                                 )}
 
                                 <div className="mt-auto pt-2">
-                                    {set.access_type === 'paid' && !set.has_access ? (
+                                    {set.access_type === 'paid' && !practiceSetHasAccess(set) ? (
                                         <Button
                                             variant="solid"
                                             size="sm"

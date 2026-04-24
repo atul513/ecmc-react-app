@@ -5,7 +5,7 @@ import {
     TbCheck, TbCalendar, TbArrowLeft, TbLoader,
     TbCreditCard, TbShieldCheck, TbAlertCircle,
     TbBuildingBank, TbDeviceMobile, TbCash, TbDots,
-    TbCircleCheckFilled,
+    TbCircleCheckFilled, TbUpload, TbPhoto,
 } from 'react-icons/tb'
 
 const PAYMENT_METHODS = [
@@ -15,6 +15,12 @@ const PAYMENT_METHODS = [
     { value: 'cash',          label: 'Cash',           icon: TbCash },
     { value: 'other',         label: 'Other',          icon: TbDots },
 ]
+
+const PAYMENT_DETAILS = {
+    accountNumber: '1234567890123456',
+    upiId: 'ecmc@upi',
+    qrCodeUrl: '',
+}
 
 const PaymentPage = () => {
     const { planId } = useParams()
@@ -28,6 +34,7 @@ const PaymentPage = () => {
 
     const [method, setMethod] = useState('upi')
     const [reference, setReference] = useState('')
+    const [paymentScreenshot, setPaymentScreenshot] = useState(null)
     const [submitting, setSubmitting] = useState(false)
     const [fieldError, setFieldError] = useState('')
     const [serverError, setServerError] = useState('')
@@ -52,10 +59,15 @@ const PaymentPage = () => {
         setServerError('')
         setSubmitting(true)
         try {
-            await apiSubscribeToPlan(planId, {
-                payment_method: method,
-                payment_reference: reference.trim(),
-            })
+            const formData = new FormData()
+            formData.append('payment_method', method)
+            formData.append('payment_reference', reference.trim())
+
+            if (paymentScreenshot) {
+                formData.append('payment_screenshot', paymentScreenshot)
+            }
+
+            await apiSubscribeToPlan(planId, formData)
             setSuccess(true)
         } catch (err) {
             setServerError(err?.response?.data?.message || 'Submission failed. Please try again.')
@@ -103,7 +115,7 @@ const PaymentPage = () => {
                     </p>
                     <div className="flex flex-col gap-3">
                         <button
-                            onClick={() => navigate('/ecmc/student/my-subscription')}
+                            onClick={() => navigate('/app/student/my-subscription')}
                             className="w-full py-3 rounded-2xl bg-primary text-white font-semibold hover:bg-primary/90 transition-colors"
                         >
                             View My Subscription
@@ -207,6 +219,58 @@ const PaymentPage = () => {
                                 </ul>
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div className="md:col-span-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
+                                        Bank / UPI Details
+                                    </p>
+
+                                    <div className="space-y-4">
+                                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                            <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                                                A/C Number
+                                            </p>
+                                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 break-all">
+                                                {PAYMENT_DETAILS.accountNumber}
+                                            </p>
+                                        </div>
+
+                                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                            <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                                                UPI ID
+                                            </p>
+                                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 break-all">
+                                                {PAYMENT_DETAILS.upiId}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                                        Scan QR Code
+                                    </p>
+
+                                    {PAYMENT_DETAILS.qrCodeUrl ? (
+                                        <img
+                                            src={PAYMENT_DETAILS.qrCodeUrl}
+                                            alt="Payment QR code"
+                                            className="w-full max-w-[180px] aspect-square object-contain rounded-2xl border border-gray-200 dark:border-gray-700 bg-white p-2"
+                                        />
+                                    ) : (
+                                        <div className="w-full max-w-[180px] aspect-square rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-800 flex items-center justify-center px-4">
+                                            <p className="text-xs text-gray-400">
+                                                Add QR image URL in <code>PAYMENT_DETAILS.qrCodeUrl</code>
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <p className="text-xs text-gray-400 mt-3">
+                                        Students can pay by scanning this QR from any UPI app.
+                                    </p>
+                                </div>
+                            </div>
+
                             {serverError && (
                                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 mb-5 flex items-start gap-2">
                                     <TbAlertCircle className="shrink-0 mt-0.5" />
@@ -263,6 +327,46 @@ const PaymentPage = () => {
                                     )}
                                     <p className="text-xs text-gray-400 mt-1">
                                         Enter the UTR or transaction ID from your payment app
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                                        Payment Screenshot
+                                    </label>
+
+                                    <label className="flex items-center justify-between gap-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-4 cursor-pointer hover:border-primary/50 transition-colors">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                                {paymentScreenshot ? <TbPhoto size={18} /> : <TbUpload size={18} />}
+                                            </span>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                                                    {paymentScreenshot ? paymentScreenshot.name : 'Upload payment proof'}
+                                                </p>
+                                                <p className="text-xs text-gray-400">
+                                                    JPG, PNG, WEBP up to 5 MB
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <span className="text-xs font-semibold text-primary whitespace-nowrap">
+                                            Choose file
+                                        </span>
+
+                                        <input
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0] || null
+                                                setPaymentScreenshot(file)
+                                            }}
+                                        />
+                                    </label>
+
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Upload a screenshot from your banking or UPI app to speed up verification.
                                     </p>
                                 </div>
 

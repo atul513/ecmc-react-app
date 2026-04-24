@@ -2,6 +2,7 @@ import Container from '@/components/shared/Container'
 import classNames from '@/utils/classNames'
 import { APP_NAME } from '@/constants/app.constant'
 import { PAGE_CONTAINER_GUTTER_X } from '@/constants/theme.constant'
+import { Link } from 'react-router'
 
 const FooterContent = () => {
     return (
@@ -12,21 +13,19 @@ const FooterContent = () => {
                 rights reserved.
             </span>
             <div className="">
-                <a
+                <Link
                     className="text-gray"
-                    href="/#"
-                    onClick={(e) => e.preventDefault()}
+                    to="/terms"
                 >
                     Term & Conditions
-                </a>
+                </Link>
                 <span className="mx-2 text-muted"> | </span>
-                <a
+                <Link
                     className="text-gray"
-                    href="/#"
-                    onClick={(e) => e.preventDefault()}
+                    to="/privacy"
                 >
                     Privacy & Policy
-                </a>
+                </Link>
             </div>
         </div>
     )

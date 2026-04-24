@@ -10,6 +10,13 @@ export async function apiSubmitContact(data) {
     })
 }
 
+export async function apiGetContactDetails() {
+    return ApiService.fetchDataWithAxios({
+        url: '/v1/contact-details',
+        method: 'get',
+    })
+}
+
 export async function apiGetContactSubmissions(params) {
     return ApiService.fetchDataWithAxios({
         url: ADMIN_BASE,

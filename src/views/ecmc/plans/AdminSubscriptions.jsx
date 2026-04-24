@@ -18,6 +18,7 @@ import {
 import {
     TbSearch, TbPlus, TbRefresh, TbCalendarPlus,
     TbCircleCheck, TbBan, TbClock, TbX, TbUserPlus,
+    TbPhoto, TbExternalLink,
 } from 'react-icons/tb'
 
 const { THead, TBody, Tr, Th, Td } = Table
@@ -36,6 +37,62 @@ const STATUS_OPTIONS = [
     { value: 'expired', label: 'Expired' },
     { value: 'pending', label: 'Pending' },
 ]
+
+const PaymentProofDialog = ({ sub, onClose }) => (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
+                <div>
+                    <h3 className="font-semibold">Payment Screenshot</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                        {sub.user?.name || sub.user?.email || `Subscription #${sub.id}`}
+                    </p>
+                </div>
+                <button type="button" onClick={onClose}>
+                    <TbX className="text-xl text-gray-400 hover:text-gray-600" />
+                </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                        <p className="text-xs text-gray-400 mb-1">Reference ID</p>
+                        <p className="font-medium text-gray-800 dark:text-gray-100 break-all">
+                            {sub.payment_reference || '—'}
+                        </p>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                        <p className="text-xs text-gray-400 mb-1">Payment Method</p>
+                        <p className="font-medium text-gray-800 dark:text-gray-100 capitalize">
+                            {(sub.payment_method || '—').replaceAll('_', ' ')}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
+                    <img
+                        src={sub.payment_screenshot_url}
+                        alt="Student payment screenshot"
+                        className="w-full max-h-[70vh] object-contain rounded-xl bg-white dark:bg-gray-800"
+                    />
+                </div>
+            </div>
+
+            <div className="flex justify-between items-center px-6 pb-5 gap-3">
+                <Button className="min-w-28" onClick={onClose}>Close</Button>
+                <a
+                    href={sub.payment_screenshot_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+                >
+                    <TbExternalLink size={16} />
+                    Open Full Image
+                </a>
+            </div>
+        </div>
+    </div>
+)
 
 // ─── Assign Dialog ─────────────────────────────────────────────────────────────
 const AssignDialog = ({ plans, onClose, onAssigned }) => {
@@ -173,6 +230,7 @@ const AdminSubscriptions = () => {
     const [actionLoading, setActionLoading] = useState(null)
     const [showAssign, setShowAssign] = useState(false)
     const [extendTarget, setExtendTarget] = useState(null)
+    const [proofTarget, setProofTarget] = useState(null)
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -254,6 +312,7 @@ const AdminSubscriptions = () => {
                                     <Th>User</Th>
                                     <Th>Plan</Th>
                                     <Th>Status</Th>
+                                    <Th>Payment</Th>
                                     <Th>Start</Th>
                                     <Th>Expires</Th>
                                     <Th>Actions</Th>
@@ -262,7 +321,7 @@ const AdminSubscriptions = () => {
                             <TBody>
                                 {subs.length === 0 ? (
                                     <Tr>
-                                        <Td colSpan={7} className="text-center py-10 text-gray-400">
+                                        <Td colSpan={8} className="text-center py-10 text-gray-400">
                                             No subscriptions found
                                         </Td>
                                     </Tr>
@@ -284,6 +343,26 @@ const AdminSubscriptions = () => {
                                                 ${STATUS_COLORS[sub.status] || 'bg-gray-100 text-gray-500'}`}>
                                                 {sub.status}
                                             </span>
+                                        </Td>
+                                        <Td>
+                                            <div className="space-y-1">
+                                                <div className="text-xs text-gray-500 break-all">
+                                                    {sub.payment_reference || 'No reference'}
+                                                </div>
+                                                {sub.payment_screenshot_url ? (
+                                                    <Button
+                                                        size="xs"
+                                                        variant="plain"
+                                                        className="text-primary px-0"
+                                                        icon={<TbPhoto />}
+                                                        onClick={() => setProofTarget(sub)}
+                                                    >
+                                                        View screenshot
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">No screenshot</span>
+                                                )}
+                                            </div>
                                         </Td>
                                         <Td className="text-sm text-gray-500">{formatDate(sub.starts_at)}</Td>
                                         <Td className="text-sm text-gray-500">{formatDate(sub.expires_at)}</Td>
@@ -350,6 +429,12 @@ const AdminSubscriptions = () => {
                     sub={extendTarget}
                     onClose={() => setExtendTarget(null)}
                     onExtended={() => { setExtendTarget(null); load() }}
+                />
+            )}
+            {proofTarget?.payment_screenshot_url && (
+                <PaymentProofDialog
+                    sub={proofTarget}
+                    onClose={() => setProofTarget(null)}
                 />
             )}
         </Container>
