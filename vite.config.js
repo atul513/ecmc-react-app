@@ -14,8 +14,8 @@ export default defineConfig({
             injectRegister: 'auto',
             includeAssets: ['favicon.ico', 'icons/*.svg'],
             manifest: {
-                name: 'ECMC - Online Exam & Practice',
-                short_name: 'ECMC',
+                name: 'LrnHub - Online Exam & Practice',
+                short_name: 'LrnHub',
                 description:
                     'Smart platform for online exams, quizzes and practice sets for students and educators.',
                 theme_color: '#2a85ff',
