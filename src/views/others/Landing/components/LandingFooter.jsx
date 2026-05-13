@@ -43,7 +43,11 @@ const socialLinks = [
     { icon: TbBrandTwitter, href: '#', label: 'Twitter' },
     { icon: TbBrandInstagram, href: '#', label: 'Instagram' },
     { icon: TbBrandLinkedin, href: '#', label: 'LinkedIn' },
-    { icon: TbBrandYoutube, href: '#', label: 'YouTube' },
+    {
+        icon: TbBrandYoutube,
+        href: 'https://www.youtube.com/@LrnHub-f8v',
+        label: 'YouTube',
+    },
 ]
 
 const LandingFooter = ({ mode }) => {

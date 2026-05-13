@@ -1,6 +1,7 @@
 import Logo from '@/components/template/Logo'
 import Alert from '@/components/ui/Alert'
 import SignUpForm from './components/SignUpForm'
+import OauthSignIn from '../SignIn/components/OauthSignIn'
 import ActionLink from '@/components/shared/ActionLink'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useThemeStore } from '@/store/themeStore'
@@ -32,6 +33,19 @@ export const SignUpBase = ({ signInUrl = '/sign-in', disableSubmit }) => {
                 </Alert>
             )}
             <SignUpForm disableSubmit={disableSubmit} setMessage={setMessage} />
+            <div className="mt-8">
+                <div className="flex items-center gap-2 mb-6">
+                    <div className="border-t border-gray-200 dark:border-gray-800 flex-1 mt-[1px]" />
+                    <p className="font-semibold heading-text">
+                        or continue with
+                    </p>
+                    <div className="border-t border-gray-200 dark:border-gray-800 flex-1 mt-[1px]" />
+                </div>
+                <OauthSignIn
+                    disableSubmit={disableSubmit}
+                    setMessage={setMessage}
+                />
+            </div>
             <div>
                 <div className="mt-6 text-center">
                     <span>Already have an account? </span>
